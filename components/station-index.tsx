@@ -38,7 +38,7 @@ export function StationIndex({ headings, summary }: StationIndexProps) {
   if (headings.length === 0) return null;
 
   return (
-    <div className="hidden w-64 shrink-0 xl:block">
+    <div className="station-aside hidden shrink-0 xl:block xl:w-[248px] xl:pl-10">
       <div className="sticky top-[6.25rem] flex flex-col gap-4 py-8 pl-6 pr-6">
         {summary && (
           <div>
@@ -63,7 +63,7 @@ export function StationIndex({ headings, summary }: StationIndexProps) {
                   }}
                 >
                   <span className="station-index pt-0.5">{heading.code}</span>
-                  <span>{heading.text}</span>
+                  <span className="leading-snug">{heading.text}</span>
                 </a>
               </li>
             ))}

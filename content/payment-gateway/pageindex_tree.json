@@ -10,6 +10,13 @@
       "summary": "Outlines idempotent charge pipeline, provider multi-tenancy, webhook ingestion, and immutable financial ledger."
     },
     {
+      "node_id": "overview#architecture-context",
+      "file": "overview.md",
+      "title": "Architecture Context",
+      "level": 2,
+      "summary": "Traces checkout frontend through the API gateway to Redis mutexes, the PostgreSQL ledger, Kafka, and PSP adapters."
+    },
+    {
       "node_id": "overview#tech-stack-summary",
       "file": "overview.md",
       "title": "Tech Stack Summary",
@@ -22,6 +29,13 @@
       "title": "Key Invariants",
       "level": 2,
       "summary": "Defines rules preventing double-billing, deterministic PSP fallback, and append-only audit trail."
+    },
+    {
+      "node_id": "architecture#directory-structure",
+      "file": "architecture.md",
+      "title": "Directory Structure",
+      "level": 2,
+      "summary": "Maps cmd, internal, and pkg packages to adapters, handlers, repositories, services, and the shared idempotency and money packages."
     },
     {
       "node_id": "architecture#concurrency-and-worker-pools",
@@ -45,6 +59,13 @@
       "summary": "Details PostgreSQL ledger_entries monthly range partitioning and 64-bit integer cents storage."
     },
     {
+      "node_id": "setup#prerequisites",
+      "file": "setup.md",
+      "title": "Prerequisites",
+      "level": 2,
+      "summary": "Names the toolchain and services required before the service can run locally."
+    },
+    {
       "node_id": "setup#quickstart-via-docker-compose",
       "file": "setup.md",
       "title": "Quickstart via Docker Compose",
@@ -59,6 +80,20 @@
       "summary": "Table of configuration options including SERVER_HTTP_PORT, DATABASE_URL, and REDIS_URL."
     },
     {
+      "node_id": "setup#verification--health-check",
+      "file": "setup.md",
+      "title": "Verification & Health Check",
+      "level": 2,
+      "summary": "Shows how to confirm a running instance is healthy and reachable."
+    },
+    {
+      "node_id": "api-reference#standard-headers",
+      "file": "api-reference.md",
+      "title": "Standard Headers",
+      "level": 2,
+      "summary": "Lists the Authorization, Idempotency-Key, and Content-Type headers every mutating request must carry."
+    },
+    {
       "node_id": "api-reference#create-payment-intent",
       "file": "api-reference.md",
       "title": "Create Payment Intent",
@@ -71,6 +106,13 @@
       "title": "Refund Payment",
       "level": 2,
       "summary": "POST /api/v1/payments/{payment_id}/refunds parameters and response schema."
+    },
+    {
+      "node_id": "api-reference#error-handling",
+      "file": "api-reference.md",
+      "title": "Error Handling",
+      "level": 2,
+      "summary": "Defines the error envelope and status codes returned by the service."
     }
   ]
 }

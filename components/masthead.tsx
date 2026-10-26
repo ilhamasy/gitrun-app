@@ -54,9 +54,9 @@ export function Masthead() {
           <ThemeToggle />
           <Link
             href="/generate"
-            className="btn btn-signal hidden h-9 px-3.5 text-[0.7rem] sm:inline-flex"
+            className="btn btn-on-enamel hidden h-9 px-3.5 text-[0.7rem] sm:inline-flex"
           >
-            New line
+            Pipeline
           </Link>
         </div>
       </div>

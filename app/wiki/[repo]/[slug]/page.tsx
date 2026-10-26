@@ -70,7 +70,14 @@ export default async function WikiDocPage({ params }: WikiDocPageProps) {
 
   const pageNodes =
     tree?.nodes.filter((node) => node.file === `${slug}.md`) ?? [];
-  const summary = pageNodes.find((node) => node.level === 2)?.summary ?? null;
+  // The index covers H2 sections. Compare like with like, and only trust a
+  // summary when the index actually reaches every section of this page —
+  // otherwise the aside would describe one section beside all of them.
+  const sectionCount = headings.filter((heading) => heading.level === 2).length;
+  const indexCoversPage = pageNodes.length >= sectionCount && sectionCount > 0;
+  const summary = indexCoversPage
+    ? (pageNodes.find((node) => node.level === 2)?.summary ?? null)
+    : null;
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -83,8 +90,8 @@ export default async function WikiDocPage({ params }: WikiDocPageProps) {
         nodeCount={tree?.nodes.length ?? null}
       />
 
-      <div className="mx-auto flex w-full max-w-[1520px] flex-1 flex-col xl:flex-row">
-        <main className="min-w-0 flex-1 px-5 py-8 sm:px-8 lg:px-12 lg:py-10">
+      <div className="mx-auto flex w-full max-w-[1180px] flex-1 flex-col xl:flex-row xl:justify-center">
+        <main className="min-w-0 px-5 py-8 sm:px-8 lg:py-10 xl:px-0">
           <div className="max-w-[64ch]">
             <header className="mb-9">
               <h1 className="signage text-[2.25rem] leading-[1.04] text-ink sm:text-[2.875rem]">
@@ -100,13 +107,13 @@ export default async function WikiDocPage({ params }: WikiDocPageProps) {
                   Station {String(index + 1).padStart(2, "0")} of{" "}
                   {String(toc.pages.length).padStart(2, "0")}
                 </span>
-                {pageNodes.length > 0 && (
+                {indexCoversPage && (
                   <>
                     <span
                       aria-hidden="true"
                       className="h-3 w-px bg-hairline-strong"
                     />
-                    <span>{pageNodes.length} indexed sections</span>
+                    <span>Indexed to the section</span>
                   </>
                 )}
               </p>
@@ -116,12 +123,12 @@ export default async function WikiDocPage({ params }: WikiDocPageProps) {
 
             <nav
               aria-label="Adjacent stations"
-              className="mt-14 grid gap-px border-t-2 border-ink bg-hairline sm:grid-cols-2"
+              className="mt-14 grid border-t-2 border-ink sm:grid-cols-2"
             >
               {prev ? (
                 <Link
                   href={`/wiki/${repo}/${prev.slug}`}
-                  className="group flex flex-col gap-1 bg-paper py-4 pr-4 transition-colors hover:bg-surface"
+                  className="group flex flex-col gap-1 bg-paper py-4 transition-colors hover:bg-surface sm:pr-6"
                 >
                   <span className="label-wide inline-flex items-center gap-1.5 text-ink-3">
                     <ArrowLeft className="size-3" aria-hidden="true" />
@@ -135,10 +142,10 @@ export default async function WikiDocPage({ params }: WikiDocPageProps) {
                 <div className="hidden bg-paper sm:block" aria-hidden="true" />
               )}
 
-              {next && (
+              {next ? (
                 <Link
                   href={`/wiki/${repo}/${next.slug}`}
-                  className="group flex flex-col gap-1 bg-paper py-4 pl-0 transition-colors hover:bg-surface sm:items-end sm:pl-4"
+                  className="group flex flex-col gap-1 border-t border-hairline bg-paper py-4 transition-colors hover:bg-surface sm:border-l sm:border-t-0 sm:items-end sm:pl-6"
                 >
                   <span className="label-wide inline-flex items-center gap-1.5 text-ink-3">
                     Next station
@@ -148,6 +155,8 @@ export default async function WikiDocPage({ params }: WikiDocPageProps) {
                     {next.title}
                   </span>
                 </Link>
+              ) : (
+                <div className="hidden bg-paper sm:block" aria-hidden="true" />
               )}
             </nav>
 

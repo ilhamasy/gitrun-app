@@ -77,7 +77,7 @@ export default async function WikiDirectoryPage() {
           <div className="border-t border-hairline">
             <div
               aria-hidden="true"
-              className="hidden border-b border-ink bg-paper-2 px-5 py-2 sm:grid sm:grid-cols-[5.5rem_minmax(0,1fr)_5rem_7.5rem] sm:gap-6"
+              className="board-grid hidden border-b border-ink bg-paper-2 px-5 py-2 sm:grid"
             >
               <span className="label-wide text-ink-2">Line</span>
               <span className="label-wide text-ink-2">Destination</span>

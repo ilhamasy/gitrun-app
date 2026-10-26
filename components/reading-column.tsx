@@ -4,7 +4,12 @@ import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { CodeCell } from "@/components/code-cell";
-import { extractHeadings, numberHeadings, slugifyHeading } from "@/lib/stations";
+import {
+  extractHeadings,
+  numberHeadings,
+  slugifyHeading,
+  splitDocumentNumeral,
+} from "@/lib/stations";
 
 interface ReadingColumnProps {
   content: string;
@@ -20,6 +25,17 @@ function textOf(children: React.ReactNode): string {
       return "";
     })
     .join("");
+}
+
+/**
+ * Authors sometimes number their own headings; the margin owns the address, so
+ * the heading is set without it and no section wears two numbers.
+ */
+function withoutDocumentNumeral(children: React.ReactNode): React.ReactNode {
+  const flat = textOf(children);
+  const { code } = splitDocumentNumeral(flat);
+  if (!code) return children;
+  return flat.slice(code.length + 1);
 }
 
 export function ReadingColumn({ content }: ReadingColumnProps) {
@@ -48,7 +64,7 @@ export function ReadingColumn({ content }: ReadingColumnProps) {
             return (
               <h2 id={id}>
                 <span>
-                  {children}
+                  {withoutDocumentNumeral(children)}
                   <a
                     href={`#${id}`}
                     className="anchor-link ml-2"
@@ -74,7 +90,7 @@ export function ReadingColumn({ content }: ReadingColumnProps) {
             const code = codes.get(id);
             return (
               <h3 id={id}>
-                {children}
+                {withoutDocumentNumeral(children)}
                 <a
                   href={`#${id}`}
                   className="anchor-link ml-2"

@@ -11,7 +11,6 @@ export default function NotFound() {
       <Masthead />
       <main className="mx-auto flex w-full max-w-[1100px] flex-1 items-start px-4 py-16 sm:px-6">
         <div className="w-full border border-hairline bg-surface px-6 py-12 sm:px-10">
-          <p className="label-wide mb-3 text-ink-3">Station not found</p>
           <h1 className="signage max-w-[20ch] text-[2.5rem] sm:text-[3rem]">
             This station is not on any line.
           </h1>

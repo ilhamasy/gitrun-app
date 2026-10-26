@@ -34,6 +34,7 @@ export interface PageIndexTree {
 
 export interface HeadingItem {
   id: string;
+  /** The heading's own words, with any leading document numeral removed. */
   text: string;
   level: number;
 }
@@ -87,14 +88,39 @@ export function slugifyHeading(text: string): string {
     .replace(/-+/g, "-");
 }
 
+/**
+ * Headings are markdown. A heading that names a status code writes it in
+ * backticks ("### Response `201 Created`"); the index and the margin print
+ * plain text, so the inline markers are removed rather than shown literally.
+ */
+function plainHeadingText(text: string): string {
+  return text.replace(/[`*_~]/g, "").replace(/\s+/g, " ").trim();
+}
+
+/**
+ * A document may already number its own sections ("## 1. Create Payment
+ * Intent"). The margin owns the address, so a leading numeral is stripped
+ * before display: a section never wears two numbers.
+ */
+const DOCUMENT_NUMERAL = /^(\d+(?:\.\d+)*)\.?\s+/;
+
+export function splitDocumentNumeral(text: string): { code: string | null; text: string } {
+  const match = text.match(DOCUMENT_NUMERAL);
+  if (!match) return { code: null, text };
+  return { code: match[1], text: text.slice(match[0].length) };
+}
+
 export function extractHeadings(markdown: string): HeadingItem[] {
   const headings: HeadingItem[] = [];
   for (const line of markdown.split("\n")) {
     const match = line.match(/^(#{2,4})\s+(.+)$/);
     if (match) {
+      // The id keeps the author's numeral so existing anchors never move; the
+      // display text drops it, because the margin carries the address.
+      const raw = match[2].trim();
       headings.push({
-        id: slugifyHeading(match[2].trim()),
-        text: match[2].trim(),
+        id: slugifyHeading(raw),
+        text: plainHeadingText(splitDocumentNumeral(raw).text),
         level: match[1].length,
       });
     }
@@ -103,6 +129,12 @@ export function extractHeadings(markdown: string): HeadingItem[] {
 }
 
 /** Section numbers in document order, so the margin can print them. */
+/**
+ * The margin number is the section's address in the retrieval tree — that is
+ * the whole thesis — so it is always sequential. A numeral the author wrote
+ * into the heading text is display, not address, and is stripped before the
+ * heading is set, so a section never wears two numbers.
+ */
 export function numberHeadings(headings: HeadingItem[]): NumberedHeading[] {
   let h2 = 0;
   let h3 = 0;
