@@ -1,0 +1,1045 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-26T17:10:26Z",
+  "title": "Design System: GoWiki",
+  "extensions": {
+    "colorMeta": {
+      "paper": {
+        "role": "neutral",
+        "displayName": "Ground Paper",
+        "canonical": "#f4f4ef",
+        "tonalRamp": [
+          "#0b0b08",
+          "#242421",
+          "#40403c",
+          "#5e5e5a",
+          "#7d7d79",
+          "#9f9f9a",
+          "#c4c4c0",
+          "#efefea"
+        ],
+        "purpose": "Page ground everywhere; the base field of the ladder."
+      },
+      "paper-2": {
+        "role": "neutral",
+        "displayName": "Platform Grey",
+        "canonical": "#eaebe4",
+        "tonalRamp": [
+          "#0b0c07",
+          "#24251f",
+          "#40403b",
+          "#5d5e58",
+          "#7d7e78",
+          "#9e9f99",
+          "#c4c5be",
+          "#eeefe8"
+        ],
+        "purpose": "Recessed furniture: rail, table heads, active index row."
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Chalk Surface",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#7d7d7d",
+          "#9e9e9e",
+          "#c4c4c4",
+          "#eeeeee"
+        ],
+        "purpose": "Raised field: row hover, active station, panels, inputs."
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Tunnel Ink",
+        "canonical": "#151a1d",
+        "tonalRamp": [
+          "#070c0f",
+          "#202528",
+          "#3b4144",
+          "#595f62",
+          "#787e82",
+          "#999fa4",
+          "#bec5c9",
+          "#e9f0f4"
+        ],
+        "purpose": "Body text, 2px wayfinding rules, inverted chips."
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Secondary Ink",
+        "canonical": "#525c63",
+        "tonalRamp": [
+          "#050c11",
+          "#1d252b",
+          "#384148",
+          "#555f66",
+          "#747f86",
+          "#95a0a8",
+          "#bbc6ce",
+          "#e5f0f9"
+        ],
+        "purpose": "Descriptions and inactive navigation."
+      },
+      "ink-3": {
+        "role": "neutral",
+        "displayName": "Tertiary Ink",
+        "canonical": "#5c656b",
+        "tonalRamp": [
+          "#060c11",
+          "#1d252a",
+          "#394147",
+          "#565f65",
+          "#757f85",
+          "#96a0a7",
+          "#bcc6cd",
+          "#e6f0f7"
+        ],
+        "purpose": "Station codes, meta labels, timestamps."
+      },
+      "hairline": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "#dcddd3",
+        "tonalRamp": [
+          "#0b0c06",
+          "#24251d",
+          "#404138",
+          "#5e5e56",
+          "#7d7e75",
+          "#9e9f96",
+          "#c4c5bb",
+          "#eeefe5"
+        ],
+        "purpose": "1px structural divider."
+      },
+      "hairline-strong": {
+        "role": "neutral",
+        "displayName": "Hairline Strong",
+        "canonical": "#b9bbb0",
+        "tonalRamp": [
+          "#0b0c05",
+          "#24251d",
+          "#3f4138",
+          "#5d5f55",
+          "#7d7e74",
+          "#9ea095",
+          "#c3c5ba",
+          "#eef0e4"
+        ],
+        "purpose": "Control outlines, scrollbar, tag outlines."
+      },
+      "enamel": {
+        "role": "primary",
+        "displayName": "Enamel Blue",
+        "canonical": "#10365a",
+        "tonalRamp": [
+          "#000b1f",
+          "#002547",
+          "#1c4267",
+          "#3b6087",
+          "#5a81aa",
+          "#7aa2cd",
+          "#9fc8f5",
+          "#e3f0ff"
+        ],
+        "purpose": "Masthead field, primary button, code-cell header, focus on paper."
+      },
+      "enamel-deep": {
+        "role": "primary",
+        "displayName": "Deep Enamel",
+        "canonical": "#0b2740",
+        "tonalRamp": [
+          "#000c1e",
+          "#09263e",
+          "#26425d",
+          "#44607d",
+          "#62819e",
+          "#83a2c1",
+          "#a8c8e8",
+          "#e2f0ff"
+        ],
+        "purpose": "Primary hover, masthead rule, route-strip fallback."
+      },
+      "signal": {
+        "role": "secondary",
+        "displayName": "Signal Yellow",
+        "canonical": "#f5c518",
+        "tonalRamp": [
+          "#110a00",
+          "#2e2200",
+          "#4f3d00",
+          "#735a02",
+          "#997901",
+          "#c0990f",
+          "#ecbe19",
+          "#ffeebe"
+        ],
+        "purpose": "The lamp: current station, focus on enamel, urgent status."
+      },
+      "on-enamel": {
+        "role": "neutral",
+        "displayName": "Enamel Chalk",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#7d7d7d",
+          "#9e9e9e",
+          "#c4c4c4",
+          "#eeeeee"
+        ],
+        "purpose": "Text and icons on the enamel field."
+      },
+      "focus-on-paper": {
+        "role": "primary",
+        "displayName": "Focus On Paper",
+        "canonical": "#10365a",
+        "tonalRamp": [
+          "#000b1f",
+          "#002547",
+          "#1c4267",
+          "#3b6087",
+          "#5a81aa",
+          "#7aa2cd",
+          "#9fc8f5",
+          "#e3f0ff"
+        ],
+        "purpose": "Outline colour for focus over paper and surface."
+      },
+      "focus-on-enamel": {
+        "role": "secondary",
+        "displayName": "Focus On Enamel",
+        "canonical": "#f5c518",
+        "tonalRamp": [
+          "#110a00",
+          "#2e2200",
+          "#4f3d00",
+          "#735a02",
+          "#997901",
+          "#c0990f",
+          "#ecbe19",
+          "#ffeebe"
+        ],
+        "purpose": "Outline colour for focus over the enamel field."
+      },
+      "line-harbour": {
+        "role": "secondary",
+        "displayName": "Harbour Line",
+        "canonical": "#1f5c94",
+        "tonalRamp": [
+          "#000b1f",
+          "#002546",
+          "#024174",
+          "#246099",
+          "#4681bc",
+          "#67a3e0",
+          "#97c9fe",
+          "#e3f0ff"
+        ],
+        "purpose": "Assigned repository hue, field + ink in light mode."
+      },
+      "line-bramble": {
+        "role": "secondary",
+        "displayName": "Bramble Line",
+        "canonical": "#7a2141",
+        "tonalRamp": [
+          "#1f0008",
+          "#49001f",
+          "#711739",
+          "#943957",
+          "#b95a76",
+          "#de7b97",
+          "#ffa7bd",
+          "#ffe8ed"
+        ],
+        "purpose": "Assigned repository hue, field + ink in light mode."
+      },
+      "line-cedar": {
+        "role": "secondary",
+        "displayName": "Cedar Line",
+        "canonical": "#11643f",
+        "tonalRamp": [
+          "#001005",
+          "#002d18",
+          "#004d2e",
+          "#1f6e48",
+          "#448f67",
+          "#67b187",
+          "#8cd8ac",
+          "#c4ffdb"
+        ],
+        "purpose": "Assigned repository hue; also the CSS fallback hue."
+      },
+      "line-amber": {
+        "role": "secondary",
+        "displayName": "Amber Line",
+        "canonical": "#8a4b00",
+        "tonalRamp": [
+          "#170600",
+          "#391b00",
+          "#603302",
+          "#8a4b01",
+          "#ad6b2f",
+          "#d18d52",
+          "#fab277",
+          "#ffeada"
+        ],
+        "purpose": "Assigned repository hue, field + ink in light mode."
+      },
+      "line-violet": {
+        "role": "secondary",
+        "displayName": "Violet Line",
+        "canonical": "#4a3c7a",
+        "tonalRamp": [
+          "#0f002d",
+          "#271550",
+          "#423370",
+          "#5f5292",
+          "#7e72b5",
+          "#9f93d9",
+          "#c4b9fe",
+          "#eeecff"
+        ],
+        "purpose": "Assigned repository hue, field + ink in light mode."
+      },
+      "timetable-field": {
+        "role": "neutral",
+        "displayName": "Timetable Night",
+        "canonical": "#0d1c2b",
+        "tonalRamp": [
+          "#010c1a",
+          "#162535",
+          "#314152",
+          "#4e6072",
+          "#6d7f92",
+          "#8ea1b5",
+          "#b3c7db",
+          "#e3f0ff"
+        ],
+        "purpose": "Code-cell body field."
+      },
+      "timetable-ink": {
+        "role": "neutral",
+        "displayName": "Timetable Chalk",
+        "canonical": "#e8edf2",
+        "tonalRamp": [
+          "#080c0f",
+          "#212428",
+          "#3c4044",
+          "#5a5e62",
+          "#797e82",
+          "#9a9fa4",
+          "#c0c5c9",
+          "#eaeff4"
+        ],
+        "purpose": "Code-cell body text."
+      },
+      "timetable-rule": {
+        "role": "neutral",
+        "displayName": "Timetable Rule",
+        "canonical": "#1e3a52",
+        "tonalRamp": [
+          "#000c1d",
+          "#09263d",
+          "#26425b",
+          "#44617b",
+          "#63819c",
+          "#83a2bf",
+          "#a8c8e6",
+          "#e2f1ff"
+        ],
+        "purpose": "Code-cell header divider."
+      },
+      "timetable-head-ink": {
+        "role": "neutral",
+        "displayName": "Timetable Head Ink",
+        "canonical": "#c9dcec",
+        "tonalRamp": [
+          "#020c17",
+          "#172632",
+          "#32424f",
+          "#4f606e",
+          "#6e808e",
+          "#8fa1b0",
+          "#b4c7d7",
+          "#e0f1ff"
+        ],
+        "purpose": "Code-cell header text and copy control."
+      },
+      "fault-red": {
+        "role": "secondary",
+        "displayName": "Fault Red",
+        "canonical": "#a3231b",
+        "tonalRamp": [
+          "#210000",
+          "#4c0000",
+          "#7d0102",
+          "#a7271f",
+          "#cd4d40",
+          "#f47060",
+          "#feaca0",
+          "#ffe9e5"
+        ],
+        "purpose": "Destructive and error states only."
+      },
+      "paper-dark": {
+        "role": "neutral",
+        "displayName": "Ground Paper (Dark)",
+        "canonical": "#0e1417",
+        "tonalRamp": [
+          "#070c0f",
+          "#1f2528",
+          "#3a4144",
+          "#585f63",
+          "#777f83",
+          "#98a0a4",
+          "#bdc6ca",
+          "#e7f0f5"
+        ],
+        "purpose": "Dark-theme page ground."
+      },
+      "paper-2-dark": {
+        "role": "neutral",
+        "displayName": "Platform Grey (Dark)",
+        "canonical": "#151c20",
+        "tonalRamp": [
+          "#060c10",
+          "#1e2529",
+          "#394146",
+          "#575f64",
+          "#767f84",
+          "#97a0a5",
+          "#bcc6cb",
+          "#e6f0f6"
+        ],
+        "purpose": "Dark-theme recessed field."
+      },
+      "surface-dark": {
+        "role": "neutral",
+        "displayName": "Chalk Surface (Dark)",
+        "canonical": "#1a2226",
+        "tonalRamp": [
+          "#060c10",
+          "#1d2529",
+          "#394146",
+          "#565f64",
+          "#757f84",
+          "#96a0a5",
+          "#bcc6cb",
+          "#e6f0f6"
+        ],
+        "purpose": "Dark-theme raised field."
+      },
+      "ink-dark": {
+        "role": "neutral",
+        "displayName": "Tunnel Ink (Dark)",
+        "canonical": "#e9e9e3",
+        "tonalRamp": [
+          "#0b0b08",
+          "#242420",
+          "#40403b",
+          "#5e5e59",
+          "#7e7e78",
+          "#9f9f99",
+          "#c4c4bf",
+          "#efefe9"
+        ],
+        "purpose": "Dark-theme body text."
+      },
+      "ink-2-dark": {
+        "role": "neutral",
+        "displayName": "Secondary Ink (Dark)",
+        "canonical": "#a7b0b6",
+        "tonalRamp": [
+          "#060c10",
+          "#1e252a",
+          "#394146",
+          "#575f64",
+          "#767f84",
+          "#97a0a6",
+          "#bcc6cc",
+          "#e7f0f6"
+        ],
+        "purpose": "Dark-theme secondary text."
+      },
+      "ink-3-dark": {
+        "role": "neutral",
+        "displayName": "Tertiary Ink (Dark)",
+        "canonical": "#95a0a6",
+        "tonalRamp": [
+          "#050c10",
+          "#1d252a",
+          "#384146",
+          "#555f65",
+          "#757f85",
+          "#95a0a6",
+          "#bbc6cc",
+          "#e5f1f7"
+        ],
+        "purpose": "Dark-theme tertiary text."
+      },
+      "hairline-dark": {
+        "role": "neutral",
+        "displayName": "Hairline (Dark)",
+        "canonical": "#2a3439",
+        "tonalRamp": [
+          "#050c11",
+          "#1c262a",
+          "#374247",
+          "#556065",
+          "#747f85",
+          "#95a1a7",
+          "#bac6cd",
+          "#e4f1f7"
+        ],
+        "purpose": "Dark-theme structural divider."
+      },
+      "hairline-strong-dark": {
+        "role": "neutral",
+        "displayName": "Hairline Strong (Dark)",
+        "canonical": "#3b474d",
+        "tonalRamp": [
+          "#040d11",
+          "#1b262b",
+          "#364248",
+          "#536066",
+          "#728086",
+          "#93a1a8",
+          "#b9c7ce",
+          "#e3f1f9"
+        ],
+        "purpose": "Dark-theme control outline."
+      },
+      "enamel-dark": {
+        "role": "primary",
+        "displayName": "Enamel Blue (Dark)",
+        "canonical": "#1a4a72",
+        "tonalRamp": [
+          "#000c1d",
+          "#002644",
+          "#11426a",
+          "#32618b",
+          "#5282ad",
+          "#73a4d1",
+          "#98caf9",
+          "#e2f1ff"
+        ],
+        "purpose": "Dark-theme masthead and primary field."
+      },
+      "enamel-deep-dark": {
+        "role": "primary",
+        "displayName": "Deep Enamel (Dark)",
+        "canonical": "#0f3355",
+        "tonalRamp": [
+          "#000b1f",
+          "#012546",
+          "#1e4265",
+          "#3c6086",
+          "#5b81a8",
+          "#7ca2cb",
+          "#a1c8f3",
+          "#e3f0ff"
+        ],
+        "purpose": "Dark-theme primary hover."
+      },
+      "focus-on-paper-dark": {
+        "role": "secondary",
+        "displayName": "Focus On Paper (Dark)",
+        "canonical": "#f5c518",
+        "tonalRamp": [
+          "#110a00",
+          "#2e2200",
+          "#4f3d00",
+          "#735a02",
+          "#997901",
+          "#c0990f",
+          "#ecbe19",
+          "#ffeebe"
+        ],
+        "purpose": "Dark-theme focus outline on paper."
+      },
+      "line-harbour-dark": {
+        "role": "secondary",
+        "displayName": "Harbour Line Field (Dark)",
+        "canonical": "#2b6ea8",
+        "tonalRamp": [
+          "#000c1e",
+          "#002545",
+          "#004272",
+          "#1c619a",
+          "#4082bd",
+          "#62a4e2",
+          "#93caff",
+          "#e2f0ff"
+        ],
+        "purpose": "Harbour fill in the dark theme."
+      },
+      "line-bramble-dark": {
+        "role": "secondary",
+        "displayName": "Bramble Line Field (Dark)",
+        "canonical": "#ad3a60",
+        "tonalRamp": [
+          "#1f0008",
+          "#49001e",
+          "#780137",
+          "#9e2c54",
+          "#c44f73",
+          "#ea7194",
+          "#fea7bc",
+          "#ffe8ec"
+        ],
+        "purpose": "Bramble fill in the dark theme."
+      },
+      "line-cedar-dark": {
+        "role": "secondary",
+        "displayName": "Cedar Line Field (Dark)",
+        "canonical": "#1a7a4f",
+        "tonalRamp": [
+          "#001005",
+          "#002d18",
+          "#004d2e",
+          "#057045",
+          "#379164",
+          "#5cb385",
+          "#83daa9",
+          "#c4ffdc"
+        ],
+        "purpose": "Cedar fill in the dark theme."
+      },
+      "line-amber-dark": {
+        "role": "secondary",
+        "displayName": "Amber Line Field (Dark)",
+        "canonical": "#a05c0a",
+        "tonalRamp": [
+          "#170600",
+          "#391c00",
+          "#5f3401",
+          "#894c00",
+          "#b06a22",
+          "#d48c48",
+          "#fdb26e",
+          "#ffead9"
+        ],
+        "purpose": "Amber fill in the dark theme."
+      },
+      "line-violet-dark": {
+        "role": "secondary",
+        "displayName": "Violet Line Field (Dark)",
+        "canonical": "#6a57a6",
+        "tonalRamp": [
+          "#0f002c",
+          "#290d58",
+          "#442e79",
+          "#614e9c",
+          "#806ebf",
+          "#a18fe4",
+          "#c6b9ff",
+          "#efecff"
+        ],
+        "purpose": "Violet fill in the dark theme."
+      },
+      "line-harbour-ink-dark": {
+        "role": "secondary",
+        "displayName": "Harbour Line Ink (Dark)",
+        "canonical": "#6fa8d6",
+        "tonalRamp": [
+          "#000c1c",
+          "#002641",
+          "#01436b",
+          "#2a628d",
+          "#4b83af",
+          "#6ca5d3",
+          "#91cbfb",
+          "#e1f1ff"
+        ],
+        "purpose": "Harbour text/underline value in dark theme."
+      },
+      "line-bramble-ink-dark": {
+        "role": "secondary",
+        "displayName": "Bramble Line Ink (Dark)",
+        "canonical": "#d07e9c",
+        "tonalRamp": [
+          "#1f000c",
+          "#480025",
+          "#692141",
+          "#8c415f",
+          "#af607e",
+          "#d4819f",
+          "#fda7c5",
+          "#ffe7ef"
+        ],
+        "purpose": "Bramble text/underline value in dark theme."
+      },
+      "line-cedar-ink-dark": {
+        "role": "secondary",
+        "displayName": "Cedar Line Ink (Dark)",
+        "canonical": "#5fb68c",
+        "tonalRamp": [
+          "#001006",
+          "#002c1a",
+          "#004d31",
+          "#046f4a",
+          "#379068",
+          "#5cb389",
+          "#82daae",
+          "#c2ffde"
+        ],
+        "purpose": "Cedar text/underline value in dark theme."
+      },
+      "line-amber-ink-dark": {
+        "role": "secondary",
+        "displayName": "Amber Line Ink (Dark)",
+        "canonical": "#d9a15b",
+        "tonalRamp": [
+          "#150800",
+          "#351e00",
+          "#593702",
+          "#815200",
+          "#a67127",
+          "#c9924c",
+          "#f1b872",
+          "#ffebd5"
+        ],
+        "purpose": "Amber text/underline value in dark theme."
+      },
+      "line-violet-ink-dark": {
+        "role": "secondary",
+        "displayName": "Violet Line Ink (Dark)",
+        "canonical": "#a295d6",
+        "tonalRamp": [
+          "#0f002c",
+          "#27174c",
+          "#42346d",
+          "#60528e",
+          "#7f72b1",
+          "#a093d4",
+          "#c6b9fc",
+          "#efecff"
+        ],
+        "purpose": "Violet text/underline value in dark theme."
+      },
+      "timetable-field-dark": {
+        "role": "neutral",
+        "displayName": "Timetable Night (Dark)",
+        "canonical": "#070d11",
+        "tonalRamp": [
+          "#060c10",
+          "#1e252a",
+          "#394146",
+          "#575f64",
+          "#767f84",
+          "#97a0a6",
+          "#bcc6cc",
+          "#e7f0f6"
+        ],
+        "purpose": "Deeper code-cell field in the dark theme."
+      },
+      "fault-red-dark": {
+        "role": "secondary",
+        "displayName": "Fault Red (Dark)",
+        "canonical": "#e0705f",
+        "tonalRamp": [
+          "#210000",
+          "#4b0100",
+          "#7a0c03",
+          "#9e3427",
+          "#c45747",
+          "#ea7967",
+          "#feac9e",
+          "#ffe9e5"
+        ],
+        "purpose": "Dark-theme destructive and error colour."
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Home hero and the reader H1. Barlow Condensed 600, up to 68px, 0.98 line height."
+      },
+      "body": {
+        "displayName": "Reading Body",
+        "purpose": "The 64ch reading column. Source Serif 4 at 17px / 1.68."
+      },
+      "label": {
+        "displayName": "Signage Label",
+        "purpose": "The control voice: buttons and masthead destinations. Barlow Condensed 700 caps at 13px / 0.11em."
+      },
+      "label-wide": {
+        "displayName": "Meta Label",
+        "purpose": "Route strip, code-cell language, board column heads, dates. Caps at 10px / 0.16em."
+      },
+      "mono": {
+        "displayName": "Address Mono",
+        "purpose": "Station codes, node counts, section numbers, code. JetBrains Mono 13px, tabular."
+      }
+    },
+    "shadows": {
+      "present": false,
+      "declarations": 0,
+      "invariant": "True",
+      "statement": "The build contains zero box-shadow declarations. Depth is carried by a three-step field ladder (paper, paper-2, surface), 1px hairlines and 2px ink wayfinding rules. This is a deliberate invariant, not an omission: a shadow would imply an object floating above a printed page.",
+      "devices": [
+        {
+          "name": "field ladder",
+          "value": "var(--paper) / var(--paper-2) / var(--surface)",
+          "purpose": "Ground, recessed furniture, raised field."
+        },
+        {
+          "name": "hairline",
+          "value": "1px solid var(--hairline)",
+          "purpose": "Separates without lifting."
+        },
+        {
+          "name": "wayfinding rule",
+          "value": "2px solid var(--ink)",
+          "purpose": "Marks a genuine boundary: section top, table head, previous/next seam."
+        },
+        {
+          "name": "scroll mask",
+          "value": "linear-gradient(to right, #000 0, #000 calc(100% - 2rem), transparent 100%)",
+          "purpose": "The only soft edge; signals that a scrollable strip continues."
+        }
+      ]
+    },
+    "motion": [
+      {
+        "name": "ease",
+        "value": "cubic-bezier(0.2, 0, 0, 1)",
+        "purpose": "The single authored easing curve, used for every state transition."
+      },
+      {
+        "name": "quick",
+        "value": "140ms",
+        "purpose": "Colour and background state transitions: hover, focus, link fills."
+      },
+      {
+        "name": "settle",
+        "value": "240ms",
+        "purpose": "Pip fill and border-colour settling on the rail."
+      },
+      {
+        "name": "draw-line",
+        "value": "draw-line 420ms cubic-bezier(0.2, 0, 0, 1) both",
+        "purpose": "The line draws itself down to the current station on arrival; scaleY(0) to scaleY(1), transform-origin top."
+      },
+      {
+        "name": "draw-line-delay",
+        "value": "60ms, 140ms, 220ms, 300ms, 360ms",
+        "purpose": "Per-station stagger so the line arrives in reading order; stations 5+ share 360ms."
+      },
+      {
+        "name": "land-pip",
+        "value": "land-pip 220ms cubic-bezier(0.2, 0, 0, 1) 320ms both",
+        "purpose": "The active pip arrives last: paper fill becomes signal, line border becomes ink."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "animation-duration: 0.001ms !important; transition-duration: 0.001ms !important",
+        "purpose": "prefers-reduced-motion keeps the design and drops the theatre."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px",
+        "purpose": "Masthead nav stops scrolling and drops its mask fade; board header row appears; previous/next split into two columns."
+      },
+      {
+        "name": "lg",
+        "value": "1024px",
+        "purpose": "The rail returns to a vertical 256px sticky column; below this it is a horizontal scrollable line diagram."
+      },
+      {
+        "name": "xl",
+        "value": "1280px",
+        "purpose": "The station index appears as a 248px right column (208px content after 40px padding)."
+      },
+      {
+        "name": "shell",
+        "value": "1600px",
+        "purpose": "Maximum shell width for masthead, route strip and rail layout."
+      },
+      {
+        "name": "reader",
+        "value": "1180px",
+        "purpose": "Maximum width of the reading page, keeping the 64ch measure centred."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The commitment action: enamel field, white caps, square corners, 40px tall.",
+      "html": "<button type=\"button\" class=\"ds-btn-primary\">Open the line</button>",
+      "css": ".ds-btn-primary,.ds-btn-primary *{box-sizing:border-box;}.ds-btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 18px;border:1px solid var(--enamel,#10365a);border-radius:0;background:var(--enamel,#10365a);color:var(--on-enamel,#ffffff);font-family:var(--font-barlow-condensed,\"Barlow Condensed\"),\"Arial Narrow\",sans-serif;font-size:13px;font-weight:700;letter-spacing:0.11em;text-transform:uppercase;text-decoration:none;cursor:pointer;transition:background 140ms cubic-bezier(0.2,0,0,1),border-color 140ms cubic-bezier(0.2,0,0,1),color 140ms cubic-bezier(0.2,0,0,1);}.ds-btn-primary:hover{background:var(--enamel-2,#0b2740);border-color:var(--enamel-2,#0b2740);}.ds-btn-primary:active{background:var(--enamel-2,#0b2740);}.ds-btn-primary:focus-visible{outline:2px solid var(--ink,#151a1d);outline-offset:2px;}.ds-btn-primary:disabled{opacity:0.45;cursor:not-allowed;}"
+    },
+    {
+      "name": "Quiet Button",
+      "kind": "button",
+      "refersTo": "button-quiet",
+      "description": "Secondary action: hairline outline on paper that fills to chalk on hover.",
+      "html": "<a class=\"ds-btn-quiet\" href=\"#\">Browse all lines</a>",
+      "css": ".ds-btn-quiet,.ds-btn-quiet *{box-sizing:border-box;}.ds-btn-quiet{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 18px;border:1px solid var(--hairline-strong,#b9bbb0);border-radius:0;background:transparent;color:var(--ink,#151a1d);font-family:var(--font-barlow-condensed,\"Barlow Condensed\"),\"Arial Narrow\",sans-serif;font-size:13px;font-weight:700;letter-spacing:0.11em;text-transform:uppercase;text-decoration:none;cursor:pointer;transition:background 140ms cubic-bezier(0.2,0,0,1),border-color 140ms cubic-bezier(0.2,0,0,1),color 140ms cubic-bezier(0.2,0,0,1);}.ds-btn-quiet:hover{background:var(--surface,#ffffff);border-color:var(--ink-3,#5c656b);}.ds-btn-quiet:focus-visible{outline:2px solid var(--enamel,#10365a);outline-offset:2px;}"
+    },
+    {
+      "name": "Masthead Navigation",
+      "kind": "nav",
+      "refersTo": "masthead",
+      "description": "The 56px enamel field: square pip mark, wordmark, three destinations with a signal underline on the current one, theme toggle and ghost pipeline button.",
+      "html": "<header class=\"ds-masthead\"><a class=\"ds-wordmark\" href=\"#\"><span class=\"ds-pip\" aria-hidden=\"true\"></span><span class=\"ds-wordmark-text\">GoWiki</span></a><nav class=\"ds-nav\" aria-label=\"Primary\"><a class=\"ds-nav-link\" href=\"#\" aria-current=\"page\">Wiki lines</a><a class=\"ds-nav-link\" href=\"#\">Reasoning chat</a><a class=\"ds-nav-link\" href=\"#\">Document a repo</a></nav><div class=\"ds-masthead-end\"><button class=\"ds-theme\" type=\"button\" aria-label=\"Switch to the dark theme\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z\"></path></svg></button><a class=\"ds-pipeline\" href=\"#\">Pipeline</a></div></header>",
+      "css": ".ds-masthead,.ds-masthead *{box-sizing:border-box;}.ds-masthead{display:flex;align-items:stretch;gap:28px;height:56px;padding:0 24px;background:var(--enamel,#10365a);color:var(--on-enamel,#ffffff);border-bottom:1px solid var(--enamel-2,#0b2740);font-family:var(--font-barlow-condensed,\"Barlow Condensed\"),\"Arial Narrow\",sans-serif;}.ds-wordmark{display:inline-flex;align-items:center;gap:9px;color:inherit;text-decoration:none;flex:none;align-self:center;}.ds-pip{position:relative;display:block;width:14px;height:14px;background:var(--signal,#f5c518);flex:none;}.ds-pip::after{content:\"\";position:absolute;inset:4px;background:var(--enamel,#10365a);}.ds-wordmark-text{font-size:21px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;line-height:1;}.ds-nav{display:flex;align-items:stretch;gap:28px;min-width:0;flex:1;}.ds-nav-link{position:relative;display:inline-flex;align-items:center;gap:6px;height:56px;padding:0 2px;color:rgba(255,255,255,0.74);text-decoration:none;font-size:13px;font-weight:600;letter-spacing:0.13em;text-transform:uppercase;white-space:nowrap;transition:color 140ms cubic-bezier(0.2,0,0,1);}.ds-nav-link:hover{color:var(--on-enamel,#ffffff);}.ds-nav-link[aria-current=\"page\"]{color:var(--on-enamel,#ffffff);}.ds-nav-link[aria-current=\"page\"]::after{content:\"\";position:absolute;left:0;right:0;bottom:-1px;height:3px;background:var(--signal,#f5c518);}.ds-masthead-end{display:flex;align-items:center;gap:8px;flex:none;}.ds-theme{display:grid;place-items:center;width:36px;height:36px;padding:0;border:1px solid rgba(255,255,255,0.30);background:transparent;color:rgba(255,255,255,0.85);cursor:pointer;border-radius:0;transition:border-color 140ms cubic-bezier(0.2,0,0,1),color 140ms cubic-bezier(0.2,0,0,1);}.ds-theme:hover{border-color:rgba(255,255,255,0.60);color:var(--on-enamel,#ffffff);}.ds-theme:focus-visible{outline:2px solid var(--signal,#f5c518);outline-offset:2px;}.ds-pipeline{display:inline-flex;align-items:center;justify-content:center;height:36px;padding:0 14px;border:1px solid rgba(255,255,255,0.42);background:transparent;color:var(--on-enamel,#ffffff);text-decoration:none;font-size:11px;font-weight:700;letter-spacing:0.11em;text-transform:uppercase;border-radius:0;transition:background 140ms cubic-bezier(0.2,0,0,1),border-color 140ms cubic-bezier(0.2,0,0,1);}.ds-pipeline:hover{background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.70);}.ds-pipeline:focus-visible{outline:2px solid var(--signal,#f5c518);outline-offset:2px;}"
+    },
+    {
+      "name": "Route Strip",
+      "kind": "custom",
+      "refersTo": "route-strip",
+      "description": "The line-hue band under the masthead naming line, station and indexed node count.",
+      "html": "<div class=\"ds-strip\" data-line=\"cedar\"><div class=\"ds-strip-inner\"><a class=\"ds-strip-head\" href=\"#\">All lines</a><span class=\"ds-strip-sep\" aria-hidden=\"true\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M9 18l6-6-6-6\"/></svg></span><a class=\"ds-strip-head\" href=\"#\"><span class=\"ds-strip-swatch\" aria-hidden=\"true\"></span>Payment Gateway</a><span class=\"ds-strip-sep\" aria-hidden=\"true\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M9 18l6-6-6-6\"/></svg></span><span class=\"ds-strip-head\"><span class=\"ds-strip-code\">02</span><span style=\"opacity:0.9;margin-left:6px\">Architecture</span></span><span class=\"ds-strip-count\">14 indexed nodes</span></div></div>",
+      "css": ".ds-strip,.ds-strip *{box-sizing:border-box;}.ds-strip{background:var(--line,#11643f);color:#ffffff;font-family:var(--font-barlow-condensed,\"Barlow Condensed\"),\"Arial Narrow\",sans-serif;}.ds-strip-inner{display:flex;flex-wrap:wrap;align-items:center;gap:4px 16px;padding:10px 24px;}.ds-strip-head{display:inline-flex;align-items:center;gap:0;font-size:10px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#ffffff;text-decoration:none;}.ds-strip-link{font-size:10px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#ffffff;text-decoration:none;text-underline-offset:4px;}.ds-strip-link:hover{text-decoration:underline;}.ds-strip-link:focus-visible{outline:2px solid #ffffff;outline-offset:2px;}.ds-strip-sep{display:inline-flex;align-items:center;color:rgba(255,255,255,0.60);}.ds-strip-swatch{display:inline-block;width:24px;height:8px;background:rgba(255,255,255,0.85);margin-right:8px;vertical-align:middle;}.ds-strip-code{display:inline-block;background:#ffffff;color:var(--line,#11643f);padding:1px 4px;font-family:var(--font-jetbrains-mono,\"JetBrains Mono\"),ui-monospace,monospace;font-size:10px;font-weight:700;letter-spacing:0.02em;vertical-align:middle;}.ds-strip-count{margin-left:auto;font-size:11px;letter-spacing:0.04em;text-transform:uppercase;color:#ffffff;}"
+    },
+    {
+      "name": "Rail Station",
+      "kind": "custom",
+      "refersTo": "rail-station",
+      "description": "A numbered station on the drawn vertical line: square pip, caps name, mono code, with passed and active states.",
+      "html": "<ol class=\"ds-rail\" aria-label=\"Stations on this line\"><li class=\"ds-rail-item\"><a class=\"ds-station\" href=\"#\" data-passed=\"true\"><span class=\"ds-pip-square\" aria-hidden=\"true\"></span><span class=\"ds-station-name\">Overview</span><span class=\"ds-station-code\">01</span></a></li><li class=\"ds-rail-item\"><a class=\"ds-station\" href=\"#\" data-active=\"true\"><span class=\"ds-pip-square\" aria-hidden=\"true\"></span><span class=\"ds-station-name\">Architecture</span><span class=\"ds-station-code\">HERE</span></a></li><li class=\"ds-rail-item\"><a class=\"ds-station\" href=\"#\"><span class=\"ds-pip-square\" aria-hidden=\"true\"></span><span class=\"ds-station-name\">Setup</span><span class=\"ds-station-code\">03</span></a></li><li class=\"ds-rail-item\"><a class=\"ds-station\" href=\"#\"><span class=\"ds-pip-square\" aria-hidden=\"true\"></span><span class=\"ds-station-name\">API reference</span><span class=\"ds-station-code\">04</span></a></li></ol>",
+      "css": ".ds-rail,.ds-rail *{box-sizing:border-box;}.ds-rail{width:256px;list-style:none;margin:0;padding:8px 0 12px;background:var(--paper-2,#eaebe4);border-right:1px solid var(--hairline,#dcddd3);font-family:var(--font-barlow-condensed,\"Barlow Condensed\"),\"Arial Narrow\",sans-serif;}.ds-rail-item{position:relative;margin:0;padding:0;}.ds-rail-item::before{content:\"\";position:absolute;left:22px;top:0;bottom:0;width:3px;background:var(--line,#11643f);opacity:0.32;}.ds-rail-item:first-child::before{top:50%;}.ds-rail-item:last-child::before{bottom:50%;}.ds-station{position:relative;display:grid;grid-template-columns:36px minmax(0,1fr) auto;align-items:center;gap:10px;padding:9px 14px 9px 11px;text-decoration:none;color:var(--ink-2,#525c63);transition:background 140ms cubic-bezier(0.2,0,0,1),color 140ms cubic-bezier(0.2,0,0,1);}.ds-station:hover{background:rgba(255,255,255,0.70);color:var(--ink,#151a1d);}.ds-station:focus-visible{outline:2px solid var(--enamel,#10365a);outline-offset:-2px;}.ds-station[data-active=\"true\"]{background:var(--surface,#ffffff);color:var(--ink,#151a1d);}.ds-pip-square{position:relative;z-index:1;display:grid;place-items:center;width:21px;height:21px;margin-left:2px;background:var(--paper-2,#eaebe4);}.ds-pip-square::before{content:\"\";width:11px;height:11px;border:2px solid var(--line,#11643f);background:var(--paper-2,#eaebe4);transition:background 240ms cubic-bezier(0.2,0,0,1),border-color 240ms cubic-bezier(0.2,0,0,1);}.ds-station[data-passed=\"true\"] .ds-pip-square::before{background:var(--line,#11643f);}.ds-station[data-active=\"true\"] .ds-pip-square::before{background:var(--signal,#f5c518);border-color:var(--ink,#151a1d);}.ds-station-name{font-size:14px;font-weight:600;letter-spacing:0.045em;text-transform:uppercase;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}.ds-station[data-active=\"true\"] .ds-station-name{font-weight:700;}.ds-station-code{font-family:var(--font-jetbrains-mono,\"JetBrains Mono\"),ui-monospace,monospace;font-size:11px;letter-spacing:0.02em;color:var(--ink-3,#5c656b);font-variant-numeric:tabular-nums;}.ds-station[data-active=\"true\"] .ds-station-code{color:var(--ink,#151a1d);font-weight:700;}"
+    },
+    {
+      "name": "Station Index Link",
+      "kind": "nav",
+      "refersTo": "station-index-link",
+      "description": "The on-page retrieval node: mono section address plus label; the active row inverts its code into an ink chip and marks its edge.",
+      "html": "<nav aria-label=\"Stations on this page\"><ul class=\"ds-toc\"><li><a class=\"ds-toc-link\" href=\"#\" style=\"padding-left:10px\"><span class=\"ds-toc-code\">1</span><span>System shape</span></a></li><li><a class=\"ds-toc-link\" href=\"#\" data-active=\"true\" style=\"padding-left:22px\"><span class=\"ds-toc-code\">1.1</span><span>Request path</span></a></li><li><a class=\"ds-toc-link\" href=\"#\" style=\"padding-left:22px\"><span class=\"ds-toc-code\">1.2</span><span>Failure handling</span></a></li><li><a class=\"ds-toc-link\" href=\"#\" style=\"padding-left:10px\"><span class=\"ds-toc-code\">2</span><span>Interfaces</span></a></li></ul></nav>",
+      "css": ".ds-toc,.ds-toc *{box-sizing:border-box;}.ds-toc{width:160px;list-style:none;margin:0;padding:0;}.ds-toc-link{display:grid;grid-template-columns:24px minmax(0,1fr);gap:5px;align-items:start;padding:5px 0 5px 10px;border-left:2px solid transparent;color:var(--ink-2,#525c63);text-decoration:none;font-family:var(--font-source-serif,\"Source Serif 4\"),Georgia,serif;font-size:13px;line-height:1.3;transition:color 140ms cubic-bezier(0.2,0,0,1),border-color 140ms cubic-bezier(0.2,0,0,1),background 140ms cubic-bezier(0.2,0,0,1);}.ds-toc-link:hover{color:var(--ink,#151a1d);}.ds-toc-link:focus-visible{outline:2px solid var(--enamel,#10365a);outline-offset:2px;}.ds-toc-link[data-active=\"true\"]{color:var(--ink,#151a1d);background:var(--paper-2,#eaebe4);border-left-color:var(--ink,#151a1d);font-weight:600;}.ds-toc-code{display:inline-block;font-family:var(--font-jetbrains-mono,\"JetBrains Mono\"),ui-monospace,monospace;font-size:11px;font-weight:500;letter-spacing:0.04em;color:var(--ink-3,#5c656b);font-variant-numeric:tabular-nums;line-height:1.4;white-space:nowrap;}.ds-toc-link[data-active=\"true\"] .ds-toc-code{background:var(--ink,#151a1d);color:var(--paper,#f4f4ef);padding:0 3px;}"
+    },
+    {
+      "name": "Board Row",
+      "kind": "custom",
+      "refersTo": "board-row",
+      "description": "One repository on the departure board: line swatch, destination, station count, updated date on a shared template.",
+      "html": "<a class=\"ds-board-row\" href=\"#\"><span class=\"ds-board-swatch\" aria-hidden=\"true\"></span><span class=\"ds-board-destination\">Payment Gateway</span><span class=\"ds-board-meta\">04 stations</span><span class=\"ds-board-meta\">Updated 12 Oct 2026</span></a>",
+      "css": ".ds-board-row,.ds-board-row *{box-sizing:border-box;}.ds-board-row{display:grid;grid-template-columns:88px minmax(0,1fr) 104px 136px;align-items:center;gap:24px;padding:17px 20px;border-bottom:1px solid var(--hairline,#dcddd3);background:transparent;color:var(--ink,#151a1d);text-decoration:none;transition:background 140ms cubic-bezier(0.2,0,0,1);}.ds-board-row:hover{background:var(--surface,#ffffff);}.ds-board-row:hover .ds-board-destination{text-decoration:underline;}.ds-board-row:focus-visible{outline:2px solid var(--enamel,#10365a);outline-offset:-2px;}.ds-board-swatch{display:block;width:28px;height:10px;background:var(--line,#11643f);flex:none;}.ds-board-destination{font-family:var(--font-barlow-condensed,\"Barlow Condensed\"),\"Arial Narrow\",sans-serif;font-size:22px;font-weight:600;letter-spacing:0.01em;line-height:1.15;text-underline-offset:0.18em;}.ds-board-meta{font-family:var(--font-barlow-condensed,\"Barlow Condensed\"),\"Arial Narrow\",sans-serif;font-size:10px;font-weight:600;letter-spacing:0.13em;text-transform:uppercase;white-space:nowrap;color:var(--ink-2,#525c63);}"
+    },
+    {
+      "name": "Code Cell",
+      "kind": "custom",
+      "refersTo": "code-cell",
+      "description": "A timetable window inside the reading column: enamel header with language and copy, dark bordered body.",
+      "html": "<figure class=\"ds-code-cell\"><figcaption class=\"ds-code-head\"><span>TypeScript</span><button type=\"button\" class=\"ds-copy\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"9\" y=\"9\" width=\"13\" height=\"13\" rx=\"0\"></rect><path d=\"M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1\"></path></svg>Copy</button></figcaption><pre class=\"ds-code-pre\"><code>export function getLineHue(repoName: string) {\n  let hash = 0;\n  for (let i = 0; i &lt; repoName.length; i += 1) {\n    hash = (hash * 31 + repoName.charCodeAt(i)) &gt;&gt;&gt; 0;\n  }\n  return LINE_HUES[hash % LINE_HUES.length];\n}</code></pre></figure>",
+      "css": ".ds-code-cell,.ds-code-cell *{box-sizing:border-box;}.ds-code-cell{margin:0;border:1px solid var(--enamel-2,#0b2740);border-radius:0;background:#0d1c2b;color:#e8edf2;overflow:hidden;}.ds-code-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:5px 12px;background:#10365a;border-bottom:1px solid #1e3a52;color:#c9dcec;font-family:var(--font-barlow-condensed,\"Barlow Condensed\"),\"Arial Narrow\",sans-serif;font-size:10px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;}.ds-copy{display:inline-flex;align-items:center;gap:6px;padding:2px 4px;border:0;background:transparent;color:inherit;cursor:pointer;font:inherit;letter-spacing:0.16em;text-transform:uppercase;border-radius:0;transition:opacity 140ms cubic-bezier(0.2,0,0,1);}.ds-copy:hover{opacity:0.7;}.ds-copy:focus-visible{outline:2px solid var(--signal,#f5c518);outline-offset:2px;}.ds-copy svg{display:block;}.ds-code-pre{margin:0;padding:15px 16px;overflow-x:auto;font-family:var(--font-jetbrains-mono,\"JetBrains Mono\"),ui-monospace,monospace;font-size:13px;line-height:1.65;tab-size:2;color:#e8edf2;}.ds-code-pre code{background:none;border:0;padding:0;font-size:inherit;color:inherit;}"
+    },
+    {
+      "name": "Tag",
+      "kind": "chip",
+      "refersTo": "tag",
+      "description": "A printed stamp, never a pill: hairline outline and caps; the signal variant carries a status that needs the reader.",
+      "html": "<div class=\"ds-tag-row\"><span class=\"ds-tag\">Station 03</span><span class=\"ds-tag\">API reference</span><span class=\"ds-tag ds-tag-signal\">Not connected</span></div>",
+      "css": ".ds-tag,.ds-tag *{box-sizing:border-box;}.ds-tag-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}.ds-tag{display:inline-flex;align-items:center;gap:5px;padding:3px 7px;border:1px solid var(--hairline-strong,#b9bbb0);border-radius:0;background:transparent;color:var(--ink-2,#525c63);font-family:var(--font-barlow-condensed,\"Barlow Condensed\"),\"Arial Narrow\",sans-serif;font-size:10px;font-weight:600;letter-spacing:0.13em;text-transform:uppercase;line-height:1.3;white-space:nowrap;}.ds-tag-signal{background:var(--signal,#f5c518);border-color:var(--signal,#f5c518);color:#151a1d;}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Signal Box",
+    "overview": "GoWiki is drawn as the instrument room of a transit authority: a schematic in hairlines on paper, a line that names every stop, and one lamp that says where you are standing. Every mark on the page is an address or a direction — a station number, a pip on the line, a citation that names the section it came from. The surface should look *issued* rather than *styled*, the way a printed timetable looks set rather than designed: paper ground, an enamel-blue header field, condensed signage capitals for anything that names a place, and a serif reading column for anything that explains one.\n\nDensity is high and volume is low. Many quiet 1px hairlines carry structure, so almost nothing needs to shout: the largest ink in the system is a condensed display line, and the loudest colour is a single yellow lamp that appears on three elements at most. Corners are square down to the last token. There are no shadows anywhere in the build — depth is a matter of which field a thing sits on, not how far it floats above the page.\n\nThe world deliberately rejects the documentation-site default it could have become: grey sidebar, rounded cards, soft drop shadows, a gradient hero, a pill-shaped tag. It rejects them because a generated wiki that looks hand-assembled contradicts the product's central claim — that every sentence has a machine-addressable source. The instrument metaphor is the argument.",
+    "keyCharacteristics": [
+      "Square by default: every radius token (`--radius-sm` through `--radius-4xl`) resolves to 0px, and the station pip is a square inside a square.",
+      "Paper ground with an enamel header field; white is a *raised* surface, never the page.",
+      "Signal yellow (#f5c518) is a lamp, not a brand colour: current station, keyboard focus, and a status that needs attention.",
+      "One line hue per repository, resolved through `data-line` into `--line` and `--line-ink`, never written into markup.",
+      "Depth without shadow: 1px hairlines, field changes, and 2px ink rules.",
+      "One authored motion — the rail line drawing itself to the current station — plus 140ms and 240ms state transitions."
+    ],
+    "rules": [
+      {
+        "name": "The Signal Reservation Rule",
+        "body": "Signal yellow marks exactly three classes of thing: where you are (the active pip, the current destination, `::selection` on the text you have claimed), where the keyboard is (the focus ring on enamel, the skip link), and a state that asks for you now (the `Not connected` stamp, the signal button). It is never a hover fill on a neutral control, never a heading accent, never a decorative wash — a lamp that is always on is not a lamp.",
+        "section": "colors"
+      },
+      {
+        "name": "The Line Hue Identity Rule",
+        "body": "A repository's hue is assigned by hash and expressed only as `--line` / `--line-ink` through `data-line`. Fills use the field value; text, underlines, and bullet marks use the ink value. No component writes a hue as a literal, and no page picks a hue to look nice.",
+        "section": "colors"
+      },
+      {
+        "name": "The Measure Rule",
+        "body": "The reading column is 64ch and stays 64ch. It is not stretched to fill a wide monitor and not widened for tables; a 66ch figure that appeared in an early brief is retired — 64ch is the printed line length the page is typeset to, and the side column leaves the layout before the measure would ever shrink.",
+        "section": "typography"
+      },
+      {
+        "name": "The Signage–Serif Split Rule",
+        "body": "Barlow Condensed names things, Source Serif 4 explains them, JetBrains Mono addresses them. The one deliberate exception is the station-index label, set in serif because it is the section's own prose title, not a place name — everything else that navigates is signage.",
+        "section": "typography"
+      },
+      {
+        "name": "The One Address Rule",
+        "body": "Every section has exactly one number, and the margin owns it. Author-typed numerals are stripped from headings on render, and the station index and the citation both read from the same heading parse — so the address printed in the margin and the address quoted in an answer can never disagree.",
+        "section": "layout"
+      },
+      {
+        "name": "The Rail-Before-Content Rule",
+        "body": "Navigation is drawn, not hidden. The rail is present at every width: vertical and sticky above 1024px, horizontal and scrollable below it. There is no state in which a reader cannot see the line they are on.",
+        "section": "layout"
+      },
+      {
+        "name": "The No-Shadow Rule",
+        "body": "A shadow implies an object floating above the page, and nothing here floats — every element is printed onto the paper. If a surface needs to read as raised, move it up the field ladder and give it a hairline, not a blur.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Field-Before-Border Rule",
+        "body": "Reach for a field change before a border. A row hover is a move to Chalk Surface; only genuine separations get a hairline, and only wayfinding gets a 2px rule.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Square-By-Default Rule",
+        "body": "Nothing is rounded — not tags, not buttons, not panels, not the pip. If a shape feels too sharp, the fix is spacing or a hairline, never a radius.",
+        "section": "shapes"
+      },
+      {
+        "name": "The Border Weight Rule",
+        "body": "1px divides, 2px addresses, 3px signals. There is no fourth weight: a hairline never thickens to look important, and a decorative rule never appears at all.",
+        "section": "shapes"
+      },
+      {
+        "name": "The Cell-Not-Card Rule",
+        "body": "Containers are bordered cells on paper — hairline outline, square corners, no elevation. A card that floats above the page belongs to another product.",
+        "section": "components"
+      },
+      {
+        "name": "The Next-Station Rule",
+        "body": "A reading page ends on previous/next station, not on a call to action. The primary action of a wiki page is the next thing to read, so it is never a button.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "Do hold the reading column at 64ch and move the side column out of the layout before the measure shrinks.",
+      "Do name places, controls, and counts in Barlow Condensed caps; explain them in Source Serif 4; address them in JetBrains Mono.",
+      "Do use `--line` / `--line-ink` through `data-line` for every repository hue, so light and dark modes both stay legible.",
+      "Do give every generated page the same station skeleton — index head, numbered sections, previous/next — so a reader learns the shape once.",
+      "Do build separation from 1px hairlines and field changes before reaching for any other device.",
+      "Do keep motion to the one arrival moment plus 140ms state transitions and 240ms pip fills, and honour `prefers-reduced-motion`.",
+      "Do reserve signal yellow for current location, keyboard focus, text selection, and a status that needs attention.",
+      "Do preserve the focus outline at 2px with a 2px offset in every theme."
+    ],
+    "donts": [
+      "Don't add `box-shadow`, `drop-shadow`, or any blur to imply elevation.",
+      "Don't round a corner on any surface you set — not buttons, tags, pips, panels, or code cells. (The browser's own focus ring and native scrollbar are outside the rule.)",
+      "Don't apply signal yellow as a hover fill on a control that was not already a signal field, as a heading accent, or as a decorative band.",
+      "Don't invent a sixth line hue or hard-code a hue in markup; assignment is deterministic per repository.",
+      "Don't use a gradient as a background fill; the only gradients permitted are the mask fades at the ends of scrollable strips.",
+      "Don't put a heading's number into the authored markdown — the margin owns the address and prints it once.",
+      "Don't turn the rail into a drawer, hamburger, or collapsed dropdown at any width.",
+      "Don't set a rail or board station name, or a control label, in serif — and don't set a paragraph in condensed caps.",
+      "Don't end a reading page with a primary button; the next station is the action.",
+      "Don't let a code sample push the page sideways — it scrolls inside its own window."
+    ]
+  }
+}
