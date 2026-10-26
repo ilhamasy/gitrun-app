@@ -26,7 +26,12 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent
 DEFAULT_CONTENT_DIR = (BASE_DIR.parent / "content").resolve()
-CONTENT_DIR = Path(os.environ.get("CONTENT_DIR", DEFAULT_CONTENT_DIR)).resolve()
+raw_content = os.environ.get("CONTENT_DIR")
+if raw_content:
+    p = Path(raw_content)
+    CONTENT_DIR = p.resolve() if p.is_absolute() else (BASE_DIR / p).resolve()
+else:
+    CONTENT_DIR = DEFAULT_CONTENT_DIR
 
 app = FastAPI(
     title="GoWiki Backend API",
