@@ -1,41 +1,41 @@
 {
   "repo": "auth-sentinel",
-  "generated_at": "2026-10-26T12:00:00Z",
+  "generated_at": "2026-10-26T23:36:55.716376+00:00",
   "nodes": [
     {
       "node_id": "overview#supported-protocols",
       "file": "overview.md",
       "title": "Supported Protocols",
       "level": 2,
-      "summary": "Describes OAuth2 with PKCE, Client Credentials grant, and OIDC Core 1.0 support."
+      "summary": "- OAuth 2.0 Authorization Code Flow with PKCE: RFC 7636 compliant authorization flow for web and mobile clients. - Client Credentials Grant: RFC 6749 flow for machine-to-machine service communication."
     },
     {
       "node_id": "overview#security-boundaries",
       "file": "overview.md",
       "title": "Security Boundaries",
       "level": 2,
-      "summary": "Covers RS256 signing, 15-minute token TTL, and Redis opaque refresh token rotation."
+      "summary": "All access tokens are minted as RS256 signed JWTs with a strict 15-minute lifetime. Refresh tokens are opaque 256-bit cryptographically secure random tokens stored in Redis with rotating replay detection."
     },
     {
       "node_id": "architecture#asymmetric-key-rotation",
       "file": "architecture.md",
       "title": "Asymmetric Key Rotation",
       "level": 2,
-      "summary": "Explains 30-day kid rotation schedule and JWKS public export."
+      "summary": "Tokens are signed using RS256 private keys managed in Kubernetes secrets. Public keys are exported via standard JWKS (/.well-known/jwks.json) with automated kid rotation every 30 days."
     },
     {
       "node_id": "architecture#token-revocation-blocklist",
       "file": "architecture.md",
       "title": "Token Revocation & Blocklist",
       "level": 2,
-      "summary": "Details Redis bloom filter and jti blacklist for near-instant session invalidation."
+      "summary": "While JWT access tokens are stateless, immediate revocation (e.g. on compromised credentials or password reset) is handled via a low-latency Redis bloom filter combined with a hot revocation set keyed by sub and jti."
     },
     {
       "node_id": "setup#local-environment",
       "file": "setup.md",
       "title": "Local Environment",
       "level": 2,
-      "summary": "Step-by-step setup with npm, RS256 key generation, and Redis docker run."
+      "summary": "Covers Local Environment implementation details and configuration specifications."
     }
   ]
 }

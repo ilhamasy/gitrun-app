@@ -170,7 +170,7 @@ data: {"step": "completed", "repo": "payment-gateway", "redirect": "/wiki/paymen
 | Phase | Title | Scope & Artifacts | Status | Owner |
 | :--- | :--- | :--- | :--- | :--- |
 | **Phase 1** | **Backend Ingestion Engine** | Python FastAPI, Git clone, Repomix runner, 2-Pass LLM generator, writes to `content/` | Pending | Backend |
-| **Phase 2** | **PageIndex Tree Engine** | Markdown heading AST parser, LLM node summarizer, `/api/chat` tree-reasoning & streaming | Pending | Backend / AI |
+| **Phase 2** | **PageIndex Tree Engine** | Markdown heading AST parser, LLM node summarizer, `/api/chat` tree-reasoning & streaming | **COMPLETED** | Backend / AI |
 | **Phase 3** | **Frontend Wiki Reader** | Tailwind v4 + shadcn UI, layout, sidebar, markdown renderer, table of contents, seed data | **COMPLETED** | Frontend |
 | **Phase 4** | **Reasoning Chat Surface** | Dedicated `/chat` page, ChatGPT-style layout, node citation drawer, SSE streaming reader | **IN PROGRESS** | Fullstack |
 | **Phase 5** | **Live Ingestion Stepper** | `/generate` page, URL input, real-time SSE progress tracker, auto-redirect on finish | Pending | Frontend |
