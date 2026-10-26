@@ -1,26 +1,1146 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
+
+/* ---------------------------------------------------------------------------
+   GoWiki design standard
+   A generated wiki is a transit line: pages are stations, sections are stops,
+   and a citation is a station address. Read the full rationale in DESIGN.md.
+   --------------------------------------------------------------------------- */
 
 @theme inline {
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-hairline: var(--hairline);
+  --color-hairline-strong: var(--hairline-strong);
+  --color-enamel: var(--enamel);
+  --color-enamel-2: var(--enamel-2);
+  --color-signal: var(--signal);
+  --color-on-enamel: var(--on-enamel);
+
+  --font-signage: var(--font-barlow-condensed), "Arial Narrow", sans-serif;
+  --font-reading: var(--font-source-serif), Georgia, serif;
+  --font-code: var(--font-jetbrains-mono), ui-monospace, monospace;
+  --font-sans: var(--font-source-serif), Georgia, serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+  --font-heading: var(--font-barlow-condensed), "Arial Narrow", sans-serif;
+
+  /* spine + surfaces */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* The world is square. Every radius drops to zero by design. */
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+  --radius-4xl: 0px;
+  --radius: 0px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  color-scheme: light;
+
+  /* Ground and enclosure */
+  --paper: #f4f4ef;
+  --paper-2: #eaebe4;
+  --surface: #ffffff;
+  --ink: #151a1d;
+  --ink-2: #525c63;
+  --ink-3: #5c656b;
+  --hairline: #dcddd3;
+  --hairline-strong: #b9bbb0;
+
+  /* Enamel masthead and its text */
+  --enamel: #10365a;
+  --enamel-2: #0b2740;
+  --signal: #f5c518;
+  --on-enamel: #ffffff;
+
+  /* Focus is enamel on paper (11.2:1), signal on enamel (7.6:1) */
+  --focus: #10365a;
+  --focus-offset: var(--paper);
+
+  /* Line hues: field value + legible ink value */
+  --line-harbour: #1f5c94;
+  --line-bramble: #7a2141;
+  --line-cedar: #11643f;
+  --line-amber: #8a4b00;
+  --line-violet: #4a3c7a;
+  --line-harbour-ink: #1f5c94;
+  --line-bramble-ink: #7a2141;
+  --line-cedar-ink: #11643f;
+  --line-amber-ink: #8a4b00;
+  --line-violet-ink: #4a3c7a;
+
+  /* shadcn primitive spine, mapped onto the standard */
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface);
+  --popover-foreground: var(--ink);
+  --primary: var(--enamel);
+  --primary-foreground: #ffffff;
+  --secondary: var(--paper-2);
+  --secondary-foreground: var(--ink);
+  --muted: var(--paper-2);
+  --muted-foreground: var(--ink-2);
+  --accent: var(--paper-2);
+  --accent-foreground: var(--ink);
+  --destructive: #a3231b;
+  --border: var(--hairline);
+  --input: var(--hairline-strong);
+  --ring: var(--focus);
+  --sidebar: var(--paper-2);
+  --sidebar-foreground: var(--ink);
+  --sidebar-accent: var(--surface);
+  --sidebar-accent-foreground: var(--ink);
+  --sidebar-border: var(--hairline);
+  --sidebar-ring: var(--focus);
+
+  /* Motion: one authored transition, used for state only */
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --quick: 140ms;
+  --settle: 240ms;
+}
+
+.dark {
+  color-scheme: dark;
+
+  --paper: #0e1417;
+  --paper-2: #151c20;
+  --surface: #1a2226;
+  --ink: #e9e9e3;
+  --ink-2: #a7b0b6;
+  --ink-3: #95a0a6;
+  --hairline: #2a3439;
+  --hairline-strong: #3b474d;
+
+  --enamel: #1a4a72;
+  --enamel-2: #0f3355;
+  --signal: #f5c518;
+  --on-enamel: #ffffff;
+
+  --focus: #f5c518;
+  --focus-offset: var(--paper);
+
+  --line-harbour: #2b6ea8;
+  --line-bramble: #ad3a60;
+  --line-cedar: #1a7a4f;
+  --line-amber: #a05c0a;
+  --line-violet: #6a57a6;
+  --line-harbour-ink: #6fa8d6;
+  --line-bramble-ink: #d07e9c;
+  --line-cedar-ink: #5fb68c;
+  --line-amber-ink: #d9a15b;
+  --line-violet-ink: #a295d6;
+
+  --primary: var(--signal);
+  --primary-foreground: #151a1d;
+  --secondary: var(--paper-2);
+  --secondary-foreground: var(--ink);
+  --muted: var(--paper-2);
+  --muted-foreground: var(--ink-2);
+  --accent: var(--surface);
+  --accent-foreground: var(--ink);
+  --destructive: #e0705f;
+  --border: var(--hairline);
+  --input: var(--hairline-strong);
+  --ring: var(--focus);
+  --card: var(--surface);
+  --popover: var(--surface);
+  --sidebar: var(--paper-2);
+  --sidebar-accent: var(--surface);
+}
+
+/* Line hues resolve through the theme, so a line keeps its identity in dark
+   mode while its field stays legible against the darker ground. */
+[data-line="harbour"] {
+  --line: var(--line-harbour);
+  --line-ink: var(--line-harbour-ink);
+}
+
+[data-line="bramble"] {
+  --line: var(--line-bramble);
+  --line-ink: var(--line-bramble-ink);
+}
+
+[data-line="cedar"] {
+  --line: var(--line-cedar);
+  --line-ink: var(--line-cedar-ink);
+}
+
+[data-line="amber"] {
+  --line: var(--line-amber);
+  --line-ink: var(--line-amber-ink);
+}
+
+[data-line="violet"] {
+  --line: var(--line-violet);
+  --line-ink: var(--line-violet-ink);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply font-sans;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-paper text-ink;
+    font-size: 1.0625rem;
+    line-height: 1.62;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Browser surfaces belong to the design. These are not defaults. */
+  ::selection {
+    background: var(--signal);
+    color: #151a1d;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--hairline-strong) transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--hairline-strong);
+    border: 2px solid var(--paper);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--ink-3);
+  }
+
+  a {
+    text-underline-offset: 0.2em;
+    text-decoration-thickness: 1px;
+  }
+
+  input,
+  textarea,
+  button,
+  select {
+    font: inherit;
+    color: inherit;
+    caret-color: var(--ink);
+  }
+
+  /* Anchored headings land below the fixed masthead + route strip. */
+  :target {
+    scroll-margin-top: 7rem;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  /* --- Signage voice ------------------------------------------------------ */
+  .label {
+    font-family: var(--font-signage);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    line-height: 1.2;
+  }
+
+  .label-wide {
+    font-family: var(--font-signage);
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    line-height: 1.2;
+  }
+
+  .signage {
+    font-family: var(--font-signage);
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    line-height: 1.06;
+    text-wrap: balance;
+  }
+
+  .data {
+    font-family: var(--font-code);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+    font-size: 0.8125rem;
+    letter-spacing: -0.01em;
+  }
+
+  /* --- Masthead ----------------------------------------------------------- */
+  .masthead {
+    background: var(--enamel);
+    color: var(--on-enamel);
+    border-bottom: 1px solid var(--enamel-2);
+    --focus: var(--signal);
+  }
+
+  .wordmark {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5625rem;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .wordmark-text {
+    font-family: var(--font-signage);
+    font-size: 1.3125rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+
+  /* The mark is the same pip that marks your station on the rail. */
+  .pip-mark {
+    position: relative;
+    display: block;
+    width: 14px;
+    height: 14px;
+    background: var(--signal);
+    flex: none;
+  }
+
+  .pip-mark::after {
+    content: "";
+    position: absolute;
+    inset: 4px;
+    background: var(--enamel);
+  }
+
+  /* On narrow screens the destinations scroll, so the trailing edge fades to
+     show there is more — a clean hint instead of a word cut in half. */
+  .masthead-nav {
+    mask-image: linear-gradient(
+      to right,
+      #000 0,
+      #000 calc(100% - 1.75rem),
+      transparent 100%
+    );
+  }
+
+  @media (min-width: 640px) {
+    .masthead-nav {
+      mask-image: none;
+    }
+  }
+
+  .masthead-link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    height: 56px;
+    padding: 0 0.125rem;
+    font-family: var(--font-signage);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--on-enamel) 74%, transparent);
+    text-decoration: none;
+    transition: color var(--quick) var(--ease);
+  }
+
+  .masthead-link:hover {
+    color: var(--on-enamel);
+  }
+
+  .masthead-link[aria-current="page"] {
+    color: var(--on-enamel);
+  }
+
+  .masthead-link[aria-current="page"]::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 3px;
+    background: var(--signal);
+  }
+
+  /* --- Route strip: the colour field that says which line you are on ------ */
+  .route-strip {
+    background: var(--line, var(--enamel-2));
+    color: #ffffff;
+    --focus: #ffffff;
+  }
+
+  .route-strip a {
+    color: inherit;
+  }
+
+  .route-strip-meta {
+    font-family: var(--font-code);
+    font-size: 0.6875rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, #ffffff 82%, var(--line, #10365a));
+  }
+
+  /* --- The rail: a line diagram, drawn once ------------------------------ */
+  .rail {
+    width: 268px;
+    flex: none;
+    border-right: 1px solid var(--hairline);
+    background: var(--paper-2);
+    position: sticky;
+    top: 56px;
+    align-self: flex-start;
+    max-height: calc(100vh - 56px);
+    overflow-y: auto;
+  }
+
+  .rail-stations {
+    position: relative;
+    padding: 0.5rem 0 0.75rem;
+  }
+
+  /* The drawn line. Stations sit on it; the ground hides the segment behind
+     each pip so the line reads as a continuous diagram, not a border. */
+  /* Each station owns the segment of line that passes through its own pip, so
+     the diagram stays correct at any row count and any label length. The first
+     and last stations stop at their pip centre: the line never dangles. */
+  .rail-station-item {
+    position: relative;
+  }
+
+  .rail-station-item::before {
+    content: "";
+    position: absolute;
+    left: calc(0.6875rem + 0.125rem + 0.65625rem - 1.5px);
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--line, var(--line-cedar));
+    opacity: 0.32;
+  }
+
+  .rail-station-item:first-child::before {
+    top: 50%;
+  }
+
+  .rail-station-item:last-child::before {
+    bottom: 50%;
+  }
+
+  .rail-station-item:only-child::before {
+    display: none;
+  }
+
+  .rail-station {
+    position: relative;
+    display: grid;
+    grid-template-columns: 2.25rem 1fr auto;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.5625rem 0.875rem 0.5625rem 0.6875rem;
+    text-decoration: none;
+    color: var(--ink-2);
+    transition:
+      background var(--quick) var(--ease),
+      color var(--quick) var(--ease);
+  }
+
+  .rail-station:hover {
+    background: color-mix(in srgb, var(--surface) 70%, transparent);
+    color: var(--ink);
+  }
+
+  .rail-pip {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 1.3125rem;
+    height: 1.3125rem;
+    margin-left: 0.125rem;
+    flex: none;
+    background: var(--paper-2);
+  }
+
+  /* A visited station draws its pip solid, so progress is readable at a glance. */
+
+  .rail-pip::before {
+    content: "";
+    width: 11px;
+    height: 11px;
+    border: 2px solid var(--line, var(--line-cedar));
+    background: var(--paper-2);
+    transition:
+      background var(--settle) var(--ease),
+      border-color var(--settle) var(--ease);
+  }
+
+  .rail-station[data-passed="true"] .rail-pip::before {
+    background: var(--line, var(--line-cedar));
+  }
+
+  .rail-station[data-active="true"] {
+    background: var(--surface);
+    color: var(--ink);
+  }
+
+  .rail-station[data-active="true"] .rail-pip::before {
+    background: var(--signal);
+    border-color: var(--ink);
+  }
+
+  .rail-station-code {
+    font-family: var(--font-code);
+    font-size: 0.6875rem;
+    letter-spacing: 0.02em;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .rail-station[data-active="true"] .rail-station-code {
+    color: var(--ink);
+    font-weight: 700;
+  }
+
+  .rail-station-name {
+    font-family: var(--font-signage);
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.045em;
+    text-transform: uppercase;
+    line-height: 1.25;
+    /* One line always: the line diagram's geometry depends on it. */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .rail-station[data-active="true"] .rail-station-name {
+    font-weight: 700;
+  }
+
+  /* --- Panel: a bordered cell, never a floating card --------------------- */
+  .panel {
+    border: 1px solid var(--hairline);
+    background: var(--surface);
+  }
+
+  /* --- Buttons: enamel fields and hairline cells ------------------------ */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 2.5rem;
+    padding: 0 1.125rem;
+    font-family: var(--font-signage);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition:
+      background var(--quick) var(--ease),
+      color var(--quick) var(--ease),
+      border-color var(--quick) var(--ease);
+  }
+
+  .btn-primary {
+    background: var(--enamel);
+    color: var(--on-enamel);
+    border-color: var(--enamel);
+    --focus: var(--ink);
+  }
+
+  .btn-primary:hover {
+    background: var(--enamel-2);
+    border-color: var(--enamel-2);
+  }
+
+  .btn-signal {
+    background: var(--signal);
+    color: #151a1d;
+    border-color: var(--signal);
+    --focus: #151a1d;
+  }
+
+  .btn-signal:hover {
+    background: color-mix(in srgb, var(--signal) 84%, #151a1d);
+  }
+
+  .btn-quiet {
+    background: transparent;
+    color: var(--ink);
+    border-color: var(--hairline-strong);
+  }
+
+  .btn-quiet:hover {
+    background: var(--surface);
+    border-color: var(--ink-3);
+  }
+
+  .btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  /* Signal is a light field in both themes, so ink on it is always dark. */
+  .tag-on-signal {
+    background: var(--signal);
+    border-color: var(--signal);
+    color: #151a1d;
+  }
+
+  /* --- Tag: a printed stamp, not a pill --------------------------------- */
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3125rem;
+    padding: 0.1875rem 0.4375rem;
+    border: 1px solid var(--hairline-strong);
+    font-family: var(--font-signage);
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    line-height: 1.3;
+    white-space: nowrap;
+  }
+
+  /* --- Departure board: the directory ----------------------------------- */
+  .board-row {
+    display: grid;
+    grid-template-columns: 5.5rem minmax(0, 1fr) 6.5rem 8.5rem;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.0625rem 1.25rem;
+    border-bottom: 1px solid var(--hairline);
+    text-decoration: none;
+    color: inherit;
+    transition: background var(--quick) var(--ease);
+  }
+
+  .board-row:hover {
+    background: var(--surface);
+  }
+
+  .board-row:hover .board-destination {
+    text-decoration: underline;
+  }
+
+  .board-meta {
+    font-family: var(--font-signage);
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .board-destination {
+    font-family: var(--font-signage);
+    font-size: 1.375rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    line-height: 1.15;
+    text-underline-offset: 0.18em;
+  }
+
+  .board-line {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .board-line-swatch {
+    width: 1.75rem;
+    height: 0.625rem;
+    flex: none;
+  }
+
+  /* --- Reading column --------------------------------------------------- */
+  .reading {
+    font-size: 1.0625rem;
+    line-height: 1.68;
+    max-width: 64ch;
+    color: var(--ink);
+  }
+
+  .reading > * + * {
+    margin-top: 1.125rem;
+  }
+
+  .reading p {
+    text-wrap: pretty;
+  }
+
+  .reading a {
+    color: var(--ink);
+    text-decoration-line: underline;
+    text-decoration-color: var(--line-ink, var(--line-cedar-ink));
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+    transition: background var(--quick) var(--ease);
+  }
+
+  .reading a:hover {
+    background: color-mix(in srgb, var(--signal) 42%, transparent);
+  }
+
+  .reading strong {
+    font-weight: 700;
+  }
+
+  .reading em {
+    font-style: italic;
+  }
+
+  .reading ul,
+  .reading ol {
+    padding-left: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4375rem;
+  }
+
+  .reading ul {
+    list-style: none;
+  }
+
+  .reading ul > li {
+    position: relative;
+    padding-left: 0.875rem;
+  }
+
+  .reading ul > li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.66em;
+    width: 5px;
+    height: 5px;
+    background: var(--line-ink, var(--line-cedar-ink));
+  }
+
+  .reading ol {
+    list-style: decimal;
+  }
+
+  .reading ol > li::marker {
+    font-family: var(--font-code);
+    font-size: 0.875em;
+    color: var(--ink-2);
+  }
+
+  /* A notice is a bordered field, not a coloured side stripe. */
+  .reading blockquote {
+    border: 1px solid var(--hairline-strong);
+    border-top: 2px solid var(--ink);
+    background: color-mix(in srgb, var(--signal) 10%, var(--surface));
+    padding: 1rem 1.125rem;
+    color: var(--ink);
+    font-style: italic;
+  }
+
+  .reading blockquote > * + * {
+    margin-top: 0.625rem;
+  }
+
+  .reading hr {
+    border: 0;
+    border-top: 1px solid var(--hairline);
+    margin: 2.25rem 0;
+  }
+
+  .reading h2 {
+    font-family: var(--font-signage);
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 0.012em;
+    line-height: 1.2;
+    margin-top: 3.25rem;
+    margin-bottom: 1rem;
+    padding-top: 1.25rem;
+    border-top: 2px solid var(--ink);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: baseline;
+    gap: 0.75rem;
+    scroll-margin-top: 7rem;
+    text-wrap: balance;
+  }
+
+  .reading h3 {
+    font-family: var(--font-signage);
+    font-size: 1.125rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    line-height: 1.3;
+    margin-top: 1.875rem;
+    margin-bottom: 0.5rem;
+    scroll-margin-top: 7rem;
+  }
+
+  .reading h4 {
+    font-family: var(--font-signage);
+    font-size: 0.9375rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 1.5rem;
+    margin-bottom: 0.375rem;
+    scroll-margin-top: 7rem;
+  }
+
+  /* The section index is the retrieval node, so it is printed, not decorative. */
+  .station-index {
+    font-family: var(--font-code);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .anchor-link {
+    font-family: var(--font-code);
+    font-size: 0.75rem;
+    color: var(--ink-3);
+    text-decoration: none;
+    opacity: 0;
+    transition: opacity var(--quick) var(--ease);
+  }
+
+  .reading h2:hover .anchor-link,
+  .reading h3:hover .anchor-link,
+  .reading h4:hover .anchor-link,
+  .anchor-link:focus-visible {
+    opacity: 1;
+  }
+
+  .reading :not(pre) > code {
+    font-family: var(--font-code);
+    font-size: 0.84em;
+    background: color-mix(in srgb, var(--ink) 7%, transparent);
+    padding: 0.1em 0.34em;
+    border: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+  }
+
+  .code-cell-pre code {
+    background: none;
+    border: 0;
+    padding: 0;
+    font-size: inherit;
+    color: inherit;
+  }
+
+  .reading table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+    font-variant-numeric: tabular-nums;
+    display: block;
+    overflow-x: auto;
+  }
+
+  .reading thead {
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .reading th {
+    text-align: left;
+    padding: 0.5rem 0.75rem 0.5rem 0;
+    font-family: var(--font-signage);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+
+  .reading td {
+    padding: 0.5625rem 0.75rem 0.5625rem 0;
+    border-bottom: 1px solid var(--hairline);
+    color: var(--ink-2);
+    vertical-align: top;
+  }
+
+  .reading td:first-child {
+    color: var(--ink);
+  }
+
+  .reading img {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid var(--hairline);
+  }
+
+  /* --- Station toc (right rail) ----------------------------------------- */
+  .toc-link {
+    display: grid;
+    grid-template-columns: 1.375rem 1fr;
+    gap: 0.375rem;
+    padding: 0.3125rem 0;
+    font-size: 0.875rem;
+    line-height: 1.35;
+    color: var(--ink-2);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    padding-left: 0.625rem;
+    transition:
+      color var(--quick) var(--ease),
+      border-color var(--quick) var(--ease);
+  }
+
+  .toc-link:hover {
+    color: var(--ink);
+  }
+
+  .toc-link[data-active="true"] {
+    color: var(--ink);
+    border-left-color: var(--signal);
+    font-weight: 600;
+  }
+
+  /* --- Code cell: a timetable window, not a floating slab --------------- */
+  .code-cell {
+    border: 1px solid var(--enamel-2);
+    background: #0d1c2b;
+    color: #e8edf2;
+    overflow: hidden;
+  }
+
+  .dark .code-cell {
+    border-color: var(--hairline);
+    background: #070d11;
+  }
+
+  .code-cell-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.3125rem 0.75rem;
+    border-bottom: 1px solid #1e3a52;
+    background: #10365a;
+    color: #c9dcec;
+  }
+
+  .dark .code-cell-head {
+    background: var(--surface);
+    border-color: var(--hairline);
+    color: var(--ink-2);
+  }
+
+  .code-cell-pre {
+    margin: 0;
+    padding: 0.9375rem 1rem;
+    overflow-x: auto;
+    font-family: var(--font-code);
+    font-size: 0.8125rem;
+    line-height: 1.65;
+    tab-size: 2;
+  }
+
+  /* --- Reduced motion: keep the design, drop the theatre ---------------- */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer utilities {
+  .skip-link {
+    position: absolute;
+    left: 0.75rem;
+    top: -3rem;
+    z-index: 100;
+    padding: 0.625rem 0.875rem;
+    background: var(--signal);
+    color: #151a1d;
+    font-family: var(--font-signage);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: top var(--quick) var(--ease);
+  }
+
+  .skip-link:focus {
+    top: 0.75rem;
+  }
+}
+
+/* Responsive structure: the rail becomes a horizontal line diagram. */
+@media (max-width: 1023px) {
+  .rail {
+    width: 100%;
+    position: static;
+    max-height: none;
+    border-right: 0;
+    border-bottom: 1px solid var(--hairline);
+    overflow: hidden;
+  }
+
+  /* On a phone the line diagram is the whole rail. The header, the "overview"
+     link, and the interchange list stay out of the way of the page itself. */
+  .rail-head,
+  .rail-extras {
+    display: none;
+  }
+
+  .rail-stations {
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    padding: 0;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+    /* Distance from the current station to the end of the line is signalled by
+       the fade, not by a station cut in half with no explanation. */
+    mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 2rem), transparent 100%);
+  }
+
+  .rail-stations::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* The diagram is horizontal here, so no vertical segment is drawn. */
+  .rail-station-item::before {
+    display: none;
+  }
+
+  .rail-track {
+    display: none;
+  }
+
+  .rail-station {
+    display: flex;
+    align-items: center;
+    gap: 0.4375rem;
+    padding: 0.6875rem 0.875rem;
+    border-right: 1px solid var(--hairline);
+    white-space: nowrap;
+    flex: none;
+  }
+
+  .rail-station-name {
+    font-size: 0.75rem;
+  }
+
+  .rail-station-code {
+    font-size: 0.625rem;
+  }
+
+  .rail-pip {
+    margin-left: 0;
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+
+  .rail-pip::before {
+    width: 8px;
+    height: 8px;
+    border-width: 1.5px;
+  }
+
+  .board-row {
+    grid-template-columns: 1fr auto;
+    gap: 0.5rem 0.75rem;
+    padding: 1rem;
+  }
+
+  .board-line {
+    grid-column: 1 / -1;
+  }
+
+  /* The reading surface must never push the page sideways. */
+  .reading {
+    font-size: 1rem;
+  }
+
+  .reading table {
+    font-size: 0.875rem;
+  }
+
+  .reading h2 {
+    font-size: 1.3125rem;
+  }
+}
+
+@media (max-width: 639px) {
+  .rail-station {
+    padding: 0.625rem 0.75rem;
+  }
+
+  .reading {
+    max-width: 100%;
+  }
+
+  /* Long code lines scroll inside their window, never the page. */
+  .code-cell-pre {
+    font-size: 0.75rem;
+  }
 }

@@ -1,0 +1,41 @@
+{
+  "repo": "auth-sentinel",
+  "generated_at": "2026-10-26T12:00:00Z",
+  "nodes": [
+    {
+      "node_id": "overview#supported-protocols",
+      "file": "overview.md",
+      "title": "Supported Protocols",
+      "level": 2,
+      "summary": "Describes OAuth2 with PKCE, Client Credentials grant, and OIDC Core 1.0 support."
+    },
+    {
+      "node_id": "overview#security-boundaries",
+      "file": "overview.md",
+      "title": "Security Boundaries",
+      "level": 2,
+      "summary": "Covers RS256 signing, 15-minute token TTL, and Redis opaque refresh token rotation."
+    },
+    {
+      "node_id": "architecture#asymmetric-key-rotation",
+      "file": "architecture.md",
+      "title": "Asymmetric Key Rotation",
+      "level": 2,
+      "summary": "Explains 30-day kid rotation schedule and JWKS public export."
+    },
+    {
+      "node_id": "architecture#token-revocation-blocklist",
+      "file": "architecture.md",
+      "title": "Token Revocation & Blocklist",
+      "level": 2,
+      "summary": "Details Redis bloom filter and jti blacklist for near-instant session invalidation."
+    },
+    {
+      "node_id": "setup#local-environment",
+      "file": "setup.md",
+      "title": "Local Environment",
+      "level": 2,
+      "summary": "Step-by-step setup with npm, RS256 key generation, and Redis docker run."
+    }
+  ]
+}

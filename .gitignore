@@ -39,3 +39,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# agent harness installs (local tooling, not project source)
+/.claude/
+/.agents/
+/.codex/
+
+# design review captures and local browser profiles
+/.impeccable/review/

@@ -1,0 +1,29 @@
+{
+  "repo_name": "payment-gateway",
+  "display_name": "Payment Gateway Service",
+  "description": "High-throughput transaction router with distributed idempotency, PSP webhooks, and ledger synchronization.",
+  "language": "Go",
+  "stars": 128,
+  "pages": [
+    {
+      "slug": "overview",
+      "title": "System Overview",
+      "description": "Core responsibilities, business domain, and high-level system boundaries."
+    },
+    {
+      "slug": "architecture",
+      "title": "Internal Architecture",
+      "description": "Package organization, event queues, concurrency models, and ledger consistency."
+    },
+    {
+      "slug": "setup",
+      "title": "Setup & Configuration",
+      "description": "Local development with Docker Compose, environment variables, and migration runs."
+    },
+    {
+      "slug": "api-reference",
+      "title": "API Reference",
+      "description": "REST and gRPC contracts, error codes, and idempotent transaction flows."
+    }
+  ]
+}

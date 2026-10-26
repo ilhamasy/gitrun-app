@@ -1,0 +1,76 @@
+{
+  "repo": "payment-gateway",
+  "generated_at": "2026-10-26T12:00:00Z",
+  "nodes": [
+    {
+      "node_id": "overview#core-capabilities",
+      "file": "overview.md",
+      "title": "Core Capabilities",
+      "level": 2,
+      "summary": "Outlines idempotent charge pipeline, provider multi-tenancy, webhook ingestion, and immutable financial ledger."
+    },
+    {
+      "node_id": "overview#tech-stack-summary",
+      "file": "overview.md",
+      "title": "Tech Stack Summary",
+      "level": 2,
+      "summary": "Lists Go 1.23, Gin, gRPC, PostgreSQL 16, Redis 7.2, Kafka, and OpenTelemetry instrumentation details."
+    },
+    {
+      "node_id": "overview#key-invariants",
+      "file": "overview.md",
+      "title": "Key Invariants",
+      "level": 2,
+      "summary": "Defines rules preventing double-billing, deterministic PSP fallback, and append-only audit trail."
+    },
+    {
+      "node_id": "architecture#concurrency-and-worker-pools",
+      "file": "architecture.md",
+      "title": "Concurrency and Worker Pools",
+      "level": 2,
+      "summary": "Explains WebhookWorkerPool with bounded channels, backpressure, and graceful worker shutdown."
+    },
+    {
+      "node_id": "architecture#distributed-idempotency-protocol",
+      "file": "architecture.md",
+      "title": "Distributed Idempotency Protocol",
+      "level": 2,
+      "summary": "Step-by-step Redis lock acquisition, execution, ledger persistence, and error release protocol."
+    },
+    {
+      "node_id": "architecture#database-schema-partitioning",
+      "file": "architecture.md",
+      "title": "Database Schema & Partitioning",
+      "level": 2,
+      "summary": "Details PostgreSQL ledger_entries monthly range partitioning and 64-bit integer cents storage."
+    },
+    {
+      "node_id": "setup#quickstart-via-docker-compose",
+      "file": "setup.md",
+      "title": "Quickstart via Docker Compose",
+      "level": 2,
+      "summary": "Commands to launch Postgres, Redis, mock PSP stubs, migrate schemas, and run dev server."
+    },
+    {
+      "node_id": "setup#environment-variables",
+      "file": "setup.md",
+      "title": "Environment Variables",
+      "level": 2,
+      "summary": "Table of configuration options including SERVER_HTTP_PORT, DATABASE_URL, and REDIS_URL."
+    },
+    {
+      "node_id": "api-reference#create-payment-intent",
+      "file": "api-reference.md",
+      "title": "Create Payment Intent",
+      "level": 2,
+      "summary": "POST /api/v1/payments request body, headers, and 201 Created response format."
+    },
+    {
+      "node_id": "api-reference#refund-payment",
+      "file": "api-reference.md",
+      "title": "Refund Payment",
+      "level": 2,
+      "summary": "POST /api/v1/payments/{payment_id}/refunds parameters and response schema."
+    }
+  ]
+}
