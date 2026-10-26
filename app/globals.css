@@ -23,6 +23,7 @@
   --color-enamel: var(--enamel);
   --color-enamel-2: var(--enamel-2);
   --color-signal: var(--signal);
+  --color-fault: var(--fault);
   --color-on-enamel: var(--on-enamel);
 
   --font-signage: var(--font-barlow-condensed), "Arial Narrow", sans-serif;
@@ -88,6 +89,9 @@
   --signal: #f5c518;
   --on-enamel: #ffffff;
 
+  /* Error is an alarm, not a palette entry: it appears only on failure. */
+  --fault: #a3231b;
+
   /* Focus is enamel on paper (11.2:1), signal on enamel (7.6:1) */
   --focus: #10365a;
   --focus-offset: var(--paper);
@@ -152,6 +156,7 @@
   --enamel-2: #0f3355;
   --signal: #f5c518;
   --on-enamel: #ffffff;
+  --fault: #e0705f;
 
   --focus: #f5c518;
   --focus-offset: var(--paper);
@@ -1075,6 +1080,62 @@
     font-size: 0.8125rem;
     line-height: 1.65;
     tab-size: 2;
+  }
+
+  /* --- Chat surface: a printed thread, not a message stream ------------- */
+
+  /* The drawer is a printed fold-out: a rule, a summary row, then the trace. */
+  .step-drawer > summary {
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .step-drawer > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .step-summary {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.5rem 0.625rem;
+    border: 1px solid var(--hairline);
+    background: var(--paper-2);
+    transition: background var(--quick) var(--ease);
+  }
+
+  .step-summary:hover {
+    background: var(--surface);
+  }
+
+  .step-drawer > summary svg {
+    transition: transform var(--quick) var(--ease);
+  }
+
+  .step-drawer[open] > summary svg {
+    transform: rotate(180deg);
+  }
+
+  /* One step is running: a lamp, not a spinner. It is a state, so it earns
+     the signal field — it asks the reader to wait. */
+  .sq-lamp {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    flex: none;
+    background: var(--signal);
+    animation: lamp-pulse 1.1s var(--ease) infinite;
+  }
+
+  @keyframes lamp-pulse {
+    0%,
+    100% {
+      opacity: 0.35;
+    }
+    50% {
+      opacity: 1;
+    }
   }
 
   /* --- Reduced motion: keep the design, drop the theatre ---------------- */

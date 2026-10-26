@@ -1,7 +1,27 @@
 # Phase 4 Specification: Reasoning Chat Interface
 
-**Status**: In Progress  
-**Focus**: ChatGPT-style conversational surface powered by PageIndex tree-reasoning retrieval.
+**Status**: Done (local engine); model engine pending Phase 2  
+**Focus**: Conversational surface powered by PageIndex tree-reasoning retrieval.
+
+---
+
+## 0. What shipped
+
+- `app/chat/page.tsx` — server page; selects the line from `?repo=`, renders the real surface.
+- `lib/chat.ts` — the stream contract, citation links, and curated starter questions.
+- `lib/pageindex.ts` — the vectorless reader: heading parse, term ranking, verbatim quoting.
+- `app/api/chat/route.ts` — `POST /api/chat` streaming SSE; proxies a reasoning service when
+  `ROUTER_API_BASE` is set, otherwise answers locally from `content/`.
+- `components/chat/*` — container, answer entry, question entry, starters, composer.
+
+The local engine ranks node titles, summaries, and section bodies with an inverse-document-frequency
+weighting, opens the top three sections, and quotes the passages that carry the question's terms.
+Nothing is paraphrased: the answer is assembled from sentences that exist in the generated wiki, and
+each block names the node it came from. A question the index cannot route says so and lists the nodes
+it opened instead of inventing an answer.
+
+Every answer labels its engine (`Local index reader` / `Reasoning service`), so a reader can tell a
+quoted extract from a written synthesis.
 
 ---
 
@@ -27,29 +47,48 @@
 
 ## 2. Component Hierarchy
 ```
-app/chat/page.tsx (Server Component fetching repos)
- └─ components/chat/chat-container.tsx (Client Component managing message state)
-     ├─ components/chat/chat-header.tsx (Repo dropdown, clear thread button)
-     ├─ components/chat/chat-messages.tsx (Scrollable feed)
-     │   ├─ components/chat/user-bubble.tsx
-     │   ├─ components/chat/assistant-bubble.tsx
-     │   │   ├─ components/chat/reasoning-steps.tsx (Collapsible step pill)
-     │   │   ├─ components/chat/citations-bar.tsx (Clickable wiki node pills)
-     │   │   └─ components/markdown-renderer.tsx (Answer text)
-     │   └─ components/chat/starter-prompts.tsx (Clickable suggestions)
-     └─ components/chat/chat-input.tsx (Prompt textarea, submit button)
+app/chat/page.tsx (Server Component: reads ?repo=, loads trees, renders)
+ └─ components/chat/chat-container.tsx (Client: thread state, SSE reader)
+     ├─ repo selector + clear thread + node/page counts
+     ├─ components/chat/starter-prompts.tsx (empty thread)
+     ├─ components/chat/question-entry.tsx (asked question)
+     ├─ components/chat/answer-entry.tsx
+     │   ├─ step drawer (the real tree walk, not a scripted animation)
+     │   ├─ components/reading-column.tsx (answer markdown, same renderer as the wiki)
+     │   └─ citation list → /wiki/<repo>/<slug>#<anchor>
+     └─ components/chat/chat-input.tsx (composer, Enter sends, Stop aborts)
 ```
+
+The answer text is rendered by the wiki's own `ReadingColumn`, so a quoted section looks exactly
+like the section it was read from — same measure, same code cells, same heading rules.
 
 ---
 
 ## 3. API Contract (`POST /api/chat`)
-To allow independent frontend development before the FastAPI service is deployed, Next.js implements `app/api/chat/route.ts`:
-- Checks if FastAPI backend (`NEXT_PUBLIC_API_URL` or `http://localhost:8000/api/chat`) is available.
-- If FastAPI is offline, falls back to a simulated local PageIndex tree-search reader using `lib/wiki.ts` and `pageindex_tree.json`.
-- Streams response using standard SSE chunks:
-  ```json
-  {"type": "step", "message": "Inspecting PageIndex tree..."}
-  {"type": "nodes", "nodes": [{"node_id": "architecture#distributed-idempotency-protocol", "title": "Distributed Idempotency Protocol", "file": "architecture.md"}]}
-  {"type": "token", "delta": "The system prevents double-charging by..."}
-  {"type": "done"}
-  ```
+`app/api/chat/route.ts` implements the contract so the surface is never blocked on the Python
+service.
+
+- If `ROUTER_API_BASE` is set, the request is proxied to `<base>/api/chat` and its events are
+  forwarded unchanged. A timeout, a non-OK reply, or a stream with no events falls through to the
+  local engine rather than failing the turn.
+- Otherwise the local PageIndex reader answers from `lib/pageindex.ts` and `pageindex_tree.json`.
+
+Request:
+```json
+{ "repo": "payment-gateway", "messages": [{ "role": "user", "content": "…" }] }
+```
+
+One JSON object per `data:` line, `\n\n`-delimited:
+
+| Event | Payload |
+| :--- | :--- |
+| `step` | `{"type":"step","step":"Ranked the tree","detail":"3 of 16 nodes match the question"}` |
+| `nodes` | `{"type":"nodes","nodes":[{"node_id":"architecture#distributed-idempotency-protocol","title":"…","file":"architecture.md","summary":"…"}]}` |
+| `token` | `{"type":"token","delta":"…"}` — word-aligned, never half a word |
+| `done` | `{"type":"done","engine":"local"}` |
+| `error` | `{"type":"error","message":"…"}` |
+
+Status codes: `400` for a missing repo, missing user message, or unparseable body; `404` for a repo
+with no `toc.json`. Repository names and page slugs are resolved through `contentPath()` in
+`lib/wiki.ts`, which rejects anything escaping `content/` — the surface can read a compiled wiki and
+nothing else.

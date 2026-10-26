@@ -17,6 +17,20 @@ export {
 
 const CONTENT_DIR = path.join(process.cwd(), "content");
 
+/**
+ * Repository names and page slugs arrive from the URL and from the chat API,
+ * so they are untrusted. Resolve the path and refuse anything that escapes
+ * `content/` — a viewer may only read a compiled wiki, never the disk.
+ */
+function contentPath(...segments: string[]): string | null {
+  const resolved = path.resolve(CONTENT_DIR, ...segments);
+  const relative = path.relative(CONTENT_DIR, resolved);
+  if (relative === "" || relative.startsWith("..") || path.isAbsolute(relative)) {
+    return null;
+  }
+  return resolved;
+}
+
 export interface StationContext {
   title: string;
   description: string;
@@ -52,11 +66,10 @@ export async function getAllRepos(): Promise<RepoToc[]> {
 
 export async function getRepoToc(repoName: string): Promise<RepoToc | null> {
   "use cache";
+  const tocPath = contentPath(repoName, "toc.json");
+  if (!tocPath) return null;
   try {
-    const raw = await fs.readFile(
-      path.join(CONTENT_DIR, repoName, "toc.json"),
-      "utf-8"
-    );
+    const raw = await fs.readFile(tocPath, "utf-8");
     return JSON.parse(raw) as RepoToc;
   } catch {
     return null;
@@ -68,11 +81,10 @@ export async function getRepoPageMarkdown(
   slug: string
 ): Promise<string | null> {
   "use cache";
+  const pagePath = contentPath(repoName, `${slug}.md`);
+  if (!pagePath) return null;
   try {
-    return await fs.readFile(
-      path.join(CONTENT_DIR, repoName, `${slug}.md`),
-      "utf-8"
-    );
+    return await fs.readFile(pagePath, "utf-8");
   } catch {
     return null;
   }
@@ -82,11 +94,10 @@ export async function getRepoPageIndexTree(
   repoName: string
 ): Promise<PageIndexTree | null> {
   "use cache";
+  const treePath = contentPath(repoName, "pageindex_tree.json");
+  if (!treePath) return null;
   try {
-    const raw = await fs.readFile(
-      path.join(CONTENT_DIR, repoName, "pageindex_tree.json"),
-      "utf-8"
-    );
+    const raw = await fs.readFile(treePath, "utf-8");
     return JSON.parse(raw) as PageIndexTree;
   } catch {
     return null;

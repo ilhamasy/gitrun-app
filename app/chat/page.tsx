@@ -1,160 +1,136 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { ArrowRight } from "lucide-react";
+
+import { Masthead } from "@/components/masthead";
+import { RouteStrip } from "@/components/route-strip";
+import { ChatContainer } from "@/components/chat/chat-container";
+import { starterPrompts } from "@/lib/chat";
+import type { ChatRepoSummary } from "@/lib/chat";
 import {
+  formatGenerationDate,
   getAllRepos,
   getLineHue,
   getRepoPageIndexTree,
-  stationCode,
+  getRepoToc,
 } from "@/lib/wiki";
-import { Masthead } from "@/components/masthead";
 
-export const metadata = {
-  title: "Reasoning chat — not connected",
+export const metadata: Metadata = {
+  title: "Reasoning chat",
   description:
-    "The PageIndex reasoning chat surface specified for GoWiki. It needs the FastAPI service, which is not running in this build.",
+    "Ask a repository question and watch the PageIndex tree get walked. Every answer names and links the section it was read from.",
 };
 
-/**
- * This surface is honest about its state: the chat requires a reasoning service
- * that this build does not ship. Rather than fake a conversation, it shows the
- * real tree the service would navigate, so the mechanism is legible before the
- * service exists.
- */
-export default async function ChatPage() {
-  const repos = await getAllRepos();
+export const instant = false;
 
-  const lines = await Promise.all(
+interface ChatPageProps {
+  searchParams: Promise<{ repo?: string | string[] }>;
+}
+
+export default async function ChatPage({ searchParams }: ChatPageProps) {
+  const params = await searchParams;
+  const requested = Array.isArray(params.repo) ? params.repo[0] : params.repo;
+
+  const repos = await getAllRepos();
+  if (repos.length === 0) notFound();
+
+  const lines: ChatRepoSummary[] = await Promise.all(
     repos.map(async (repo) => {
       const tree = await getRepoPageIndexTree(repo.repo_name);
       return {
-        repo,
-        hue: getLineHue(repo.repo_name),
+        repo_name: repo.repo_name,
+        display_name: repo.display_name,
+        description: repo.description,
+        language: repo.language,
+        pageCount: repo.pages.length,
+        generated: formatGenerationDate(tree?.generated_at),
+        hue: getLineHue(repo.repo_name).key,
         nodes: tree?.nodes ?? [],
+        starters: starterPrompts(repo),
       };
     })
   );
 
+  const active =
+    lines.find((line) => line.repo_name === requested) ?? lines[0];
+  const toc = await getRepoToc(active.repo_name);
+  const hue = getLineHue(active.repo_name);
+
   return (
     <div className="flex min-h-screen flex-col bg-paper">
       <a href="#content" className="skip-link">
-        Skip to content
+        Skip to the conversation
       </a>
       <Masthead />
 
-      <main id="content" className="mx-auto w-full max-w-[1100px] flex-1 px-4 py-10 sm:px-6 lg:py-14">
-        <header className="mb-8 border-b-2 border-ink pb-5">
-          <h1 className="signage text-[2.5rem] sm:text-[3.25rem]">
-            Reasoning chat
-          </h1>
-          <p className="mt-3 max-w-[62ch] text-[1.0625rem] leading-relaxed text-ink-2">
-            Answers are produced by a reasoning service that walks the tree
-            index and streams the nodes it inspected. That service is not part
-            of this build, so no question can be answered here yet. Nothing
-            below will pretend otherwise.
-          </p>
-          <p className="mt-4 flex flex-wrap items-center gap-3">
-            <span className="tag tag-on-signal">Not connected</span>
-            <span className="label-wide text-ink-3">
-              Waiting on the reasoning service
-            </span>
-          </p>
+      {toc && (
+        <RouteStrip
+          repo={toc}
+          hue={hue}
+          generated={active.generated}
+          nodeCount={active.nodes.length}
+        />
+      )}
+
+      <main
+        id="content"
+        className="mx-auto w-full max-w-[1180px] flex-1 px-4 py-8 sm:px-6 lg:py-10"
+      >
+        <header className="mb-7 border-b-2 border-ink pb-4">
+          <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+            <div className="min-w-0">
+              <h1 className="signage text-[2.25rem] leading-[1.04] sm:text-[2.875rem]">
+                Reasoning chat
+              </h1>
+              <p className="mt-2 max-w-[62ch] text-[1.0625rem] leading-relaxed text-ink-2">
+                Questions are routed by reading the tree index — titles,
+                summaries, then sections — and answered by quoting the sections
+                it stops on. Each claim carries the node it came from.
+              </p>
+            </div>
+            <p className="label-wide flex shrink-0 flex-col items-start gap-1 text-ink-3">
+              <span>One line per conversation</span>
+              <span className="data text-ink-3">
+                {active.nodes.length} indexed nodes
+              </span>
+            </p>
+          </div>
         </header>
 
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
-          <section aria-labelledby="tree-heading">
-            <h2 id="tree-heading" className="label mb-3 text-ink">
-              The index it would navigate
-            </h2>
-            <p className="mb-5 max-w-[62ch] text-[0.9375rem] leading-relaxed text-ink-2">
-              Every node below is a real heading from the compiled wiki with its
-              own summary. A question would be routed by reading these summaries
-              top-down — not by comparing embeddings — and the answer would cite
-              the node it stopped on.
-            </p>
+        <ChatContainer lines={lines} initialRepo={active.repo_name} />
 
-            <div className="flex flex-col gap-6">
-              {lines.map(({ repo, hue, nodes }) => (
-                <section key={repo.repo_name}>
-                  <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 border-b border-hairline pb-1.5">
-                    <h3 className="label inline-flex items-center gap-2 text-ink">
-                      <span
-                        className="h-2.5 w-5 shrink-0"
-                        data-line={hue.key}
-                        style={{ background: "var(--line)" }}
-                        aria-hidden="true"
-                      />
-                      {repo.display_name}
-                    </h3>
-                    <span className="data text-ink-3">
-                      {String(nodes.length).padStart(2, "0")} nodes
-                    </span>
-                  </div>
-
-                  {nodes.length === 0 ? (
-                    <p className="py-2 text-[0.9375rem] text-ink-2">
-                      No tree index on disk for this line.
-                    </p>
-                  ) : (
-                    <ol className="flex flex-col">
-                      {nodes.map((node, index) => (
-                        <li
-                          key={node.node_id}
-                          className="grid grid-cols-[2.25rem_minmax(0,1fr)] gap-2 border-b border-hairline py-2"
-                        >
-                          <span className="station-index pt-0.5">
-                            {stationCode(index)}
-                          </span>
-                          <div className="min-w-0">
-                            <p className="text-[0.9375rem] font-semibold leading-snug text-ink">
-                              {node.title}
-                            </p>
-                            <p className="mt-0.5 text-[0.8125rem] leading-snug text-ink-2">
-                              {node.summary}
-                            </p>
-                            <p className="data mt-1 text-ink-3">
-                              {node.node_id}
-                            </p>
-                          </div>
-                        </li>
-                      ))}
-                    </ol>
-                  )}
-                </section>
-              ))}
-            </div>
-          </section>
-
-          <aside className="flex flex-col gap-5">
-            <div className="border border-hairline bg-surface p-4">
-              <h2 className="label mb-2 text-ink">What this needs</h2>
-              <ul className="flex flex-col gap-2 text-[0.9375rem] leading-snug text-ink-2">
-                <li>A reasoning service on localhost:8000.</li>
-                <li>
-                  <span className="data">POST /api/chat</span> streaming steps,
-                  nodes, and tokens.
-                </li>
-                <li>One repository selected per conversation.</li>
-              </ul>
-            </div>
-
-            <div className="border border-hairline bg-paper-2 p-4">
-              <h2 className="label mb-2 text-ink">Read instead</h2>
-              <p className="mb-3 text-[0.9375rem] leading-snug text-ink-2">
-                The wiki is complete on disk and needs no service. Start with a
-                line and read the section a citation would point at.
-              </p>
-              <Link href="/wiki" className="btn btn-primary w-full">
-                Open the line board
-                <ArrowRight className="size-4" aria-hidden="true" />
-              </Link>
-            </div>
-
-            <p className="text-[0.8125rem] leading-relaxed text-ink-3">
-              Seeded repositories are demo fixtures and are not organizational
-              services.
-            </p>
-          </aside>
-        </div>
+        <nav
+          aria-label="Continue reading"
+          className="mt-10 grid border-t-2 border-ink sm:grid-cols-2"
+        >
+          {toc && (
+            <Link
+              href={`/wiki/${toc.repo_name}/${toc.pages[0]?.slug ?? "overview"}`}
+              className="group flex flex-col gap-1 bg-paper py-4 transition-colors hover:bg-surface sm:pr-6"
+            >
+              <span className="label-wide inline-flex items-center gap-1.5 text-ink-3">
+                Read the source page
+                <ArrowRight className="size-3" aria-hidden="true" />
+              </span>
+              <span className="signage text-[1.125rem] text-ink group-hover:underline">
+                Open {toc.display_name}
+              </span>
+            </Link>
+          )}
+          <Link
+            href="/wiki"
+            className="group flex flex-col gap-1 border-t border-hairline bg-paper py-4 transition-colors hover:bg-surface sm:border-l sm:border-t-0 sm:items-end sm:pl-6"
+          >
+            <span className="label-wide inline-flex items-center gap-1.5 text-ink-3">
+              Another line
+              <ArrowRight className="size-3" aria-hidden="true" />
+            </span>
+            <span className="signage text-[1.125rem] text-ink group-hover:underline">
+              Open the line board
+            </span>
+          </Link>
+        </nav>
       </main>
     </div>
   );
