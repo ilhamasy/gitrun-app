@@ -1,99 +1,252 @@
-/**
- * The vectorless reader.
- *
- * Retrieval here is the mechanism the product claims: rank tree nodes from
- * their titles and summaries, open the sections those nodes point at, then
- * quote them. Nothing is embedded, and nothing is paraphrased — the local
- * answer is assembled from sentences that exist in the generated wiki.
- *
- * Server-only: it reads the compiled pages from disk.
- */
-
-import type { ChatCitation, ChatStep } from "@/lib/chat";
+import {
+  slugifyHeading,
+  type PageIndexNode,
+  type PageIndexTree,
+} from "@/lib/stations";
 import { getRepoPageIndexTree, getRepoPageMarkdown, getRepoToc } from "@/lib/wiki";
-import { slugifyHeading } from "@/lib/stations";
+import type { ChatCitation, ChatStep } from "@/lib/chat";
 
-const STOPWORDS = new Set(
-  `a about above after again against all am an and any are as at be because been before being below
-  between both but by can cannot could did do does doing down during each few for from further had has
-  have having he her here hers herself him himself his how i if in into is it its itself just me more
-  most my myself no nor not of off on once only or other our ours ourselves out over own same she should
-  so some such than that the their theirs them themselves then there these they this those through to
-  too under until up very was we were what when where which while who whom why will with would you your
-  yours yourself yourselves does doing done give gives show shows tell tells describe explain explains
-  handle handles work works use uses used using get gets got make makes made`
-    .split(/\s+/)
-    .filter(Boolean)
-);
+const STOPWORDS: Record<string, true> = {
+  a: true, an: true, and: true, are: true, as: true, at: true, be: true, by: true,
+  for: true, from: true, has: true, he: true, in: true, is: true, it: true, its: true,
+  of: true, on: true, that: true, the: true, to: true, was: true, were: true,
+  will: true, with: true, how: true, what: true, where: true, when: true, why: true,
+  who: true, which: true, does: true, do: true, did: true, can: true, could: true,
+  should: true, would: true,
+};
+
+export interface ExtractedSection {
+  node_id: string;
+  file: string;
+  title: string;
+  level: number;
+  content: string;
+}
 
 /**
- * A five-character prefix is enough to keep `charge`/`charging`,
- * `prevent`/`preventing`, and `partition`/`partitioned` in one bucket. It is a
- * routing aid, not linguistics: the index decides where to look, the section
- * decides what is true.
+ * Extracts a specific section's markdown content by its anchor/node_id.
+ * Scans markdown lines starting at the matching heading until the next heading of equal or higher level.
  */
-function tokenize(text: string): string[] {
-  const words = text
-    .toLowerCase()
-    .replace(/[`*_>#|]/g, " ")
-    .match(/[a-z0-9]+/g);
-  if (!words) return [];
-  return words
-    .filter((word) => word.length > 2 && !STOPWORDS.has(word))
-    .map((word) => (word.length > 5 ? word.slice(0, 5) : word));
-}
+export function extractSectionMarkdown(
+  markdown: string,
+  nodeId: string
+): { title: string; content: string; level: number } | null {
+  const targetAnchor = nodeId.includes("#") ? nodeId.split("#")[1] : nodeId;
+  const lines = markdown.split("\n");
 
-function countTerms(text: string): Map<string, number> {
-  const counts = new Map<string, number>();
-  for (const token of tokenize(text)) {
-    counts.set(token, (counts.get(token) ?? 0) + 1);
-  }
-  return counts;
-}
+  let inSection = false;
+  let sectionLevel = 0;
+  let sectionTitle = "";
+  const sectionLines: string[] = [];
 
-interface Section {
-  anchor: string;
-  level: number;
-  body: string;
-}
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const match = line.match(/^(#{2,4})\s+(.+)$/);
 
-/** Split a page at its headings, ignoring `#` characters inside code fences. */
-function splitSections(markdown: string): Section[] {
-  const lines = markdown.split(/\r?\n/);
-  const headings: { anchor: string; line: number; level: number }[] = [];
-  let inFence = false;
-
-  for (let index = 0; index < lines.length; index += 1) {
-    const line = lines[index];
-    if (/^\s*(```|~~~)/.test(line)) {
-      inFence = !inFence;
-      continue;
-    }
-    if (inFence) continue;
-    const match = line.match(/^(#{1,4})\s+(.+?)\s*$/);
     if (match) {
-      headings.push({
-        anchor: slugifyHeading(match[2]),
-        line: index,
-        level: match[1].length,
+      const level = match[1].length;
+      const rawHeading = match[2].trim();
+      const anchor = slugifyHeading(rawHeading);
+
+      if (inSection) {
+        // If we hit a heading of equal or higher level, section is over
+        if (level <= sectionLevel) {
+          break;
+        }
+        sectionLines.push(line);
+      } else if (anchor === targetAnchor) {
+        inSection = true;
+        sectionLevel = level;
+        sectionTitle = rawHeading.replace(/[`*_~]/g, "").trim();
+        sectionLines.push(line);
+      }
+    } else if (inSection) {
+      sectionLines.push(line);
+    }
+  }
+
+  if (!inSection) {
+    return null;
+  }
+
+  return {
+    title: sectionTitle,
+    content: sectionLines.join("\n").trim(),
+    level: sectionLevel,
+  };
+}
+
+/**
+ * Deterministic vectorless PageIndex search across node titles, summaries, and IDs.
+ */
+export function searchTreeNodes(
+  tree: PageIndexTree,
+  query: string,
+  topK = 3
+): { thought: string; nodes: PageIndexNode[] } {
+  const clean = query.toLowerCase().replace(/[^\w\s-]/g, " ");
+  const rawTerms = clean.split(/\s+/).filter(Boolean);
+  const terms = rawTerms.filter((t) => !STOPWORDS[t] && t.length > 1);
+  const activeTerms = terms.length > 0 ? terms : rawTerms;
+
+  const scored: { score: number; node: PageIndexNode }[] = tree.nodes.map((node) => {
+    let score = 0;
+    const nid = node.node_id.toLowerCase();
+    const title = node.title.toLowerCase();
+    const summary = node.summary.toLowerCase();
+
+    for (const term of activeTerms) {
+      if (nid.includes(term)) score += 3.0;
+      if (title.includes(term)) score += 4.0;
+      if (summary.includes(term)) score += 1.5;
+
+      const stem = term.length >= 5 ? term.slice(0, 5) : term;
+      if (nid.includes(stem)) score += 1.0;
+      if (title.includes(stem)) score += 1.5;
+      if (summary.includes(stem)) score += 0.8;
+    }
+
+    return { score, node };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+
+  const matched = scored.filter((s) => s.score > 0).map((s) => s.node);
+  const nodes = (matched.length > 0 ? matched : tree.nodes.slice(0, 1)).slice(0, topK);
+
+  const names = nodes.map((n) => `'${n.title}'`).join(", ");
+  const thought = `Navigated PageIndex tree for '${activeTerms.slice(0, 4).join(" ")}'. Selected ${nodes.length} section(s): ${names}.`;
+
+  return { thought, nodes };
+}
+
+/**
+ * Local vectorless reasoning stream that navigates pageindex_tree.json and extracts markdown sections.
+ */
+export async function* localPageIndexChat(
+  repoName: string,
+  messages: { role: string; content: string }[]
+): AsyncIterable<{ event: string; data: Record<string, unknown> }> {
+  const tree = await getRepoPageIndexTree(repoName);
+  if (!tree) {
+    yield {
+      event: "error",
+      data: { error: `Tree index not found for repository '${repoName}'` },
+    };
+    return;
+  }
+
+  const userQuery =
+    [...messages].reverse().find((m) => m.role === "user")?.content ??
+    "System Overview";
+
+  // Step 1: Tree Navigation
+  const { thought, nodes } = searchTreeNodes(tree, userQuery, 3);
+
+  yield {
+    event: "reasoning",
+    data: {
+      type: "step",
+      step: "Inspecting PageIndex tree",
+      thought,
+      message: thought,
+    },
+  };
+
+  // Step 2: Section Extraction
+  const extractedSections: ExtractedSection[] = [];
+  for (const node of nodes) {
+    const slug = node.file.replace(/\.md$/, "");
+    const md = await getRepoPageMarkdown(repoName, slug);
+    if (!md) continue;
+
+    yield {
+      event: "reasoning",
+      data: {
+        type: "step",
+        step: "Opened section",
+        detail: node.node_id,
+        message: `Opened ${node.file}#${node.node_id.split("#")[1] || ""}`,
+      },
+    };
+
+    const sec = extractSectionMarkdown(md, node.node_id);
+    if (sec) {
+      extractedSections.push({
+        node_id: node.node_id,
+        file: node.file,
+        title: sec.title || node.title,
+        level: sec.level,
+        content: sec.content,
+      });
+    } else {
+      extractedSections.push({
+        node_id: node.node_id,
+        file: node.file,
+        title: node.title,
+        level: node.level,
+        content: md.slice(0, 1500),
       });
     }
   }
 
-  return headings.map((heading, position) => {
-    let end = lines.length;
-    for (let next = position + 1; next < headings.length; next += 1) {
-      if (headings[next].level <= heading.level) {
-        end = headings[next].line;
-        break;
-      }
+  // Citations event
+  yield {
+    event: "citations",
+    data: {
+      type: "nodes",
+      nodes: extractedSections.map((s) => ({
+        node_id: s.node_id,
+        title: s.title,
+        file: s.file,
+      })),
+    },
+  };
+
+  // Step 3: Synthesis & Streaming
+  const synthesis = [
+    `Based on **PageIndex tree retrieval** across \`${repoName}\`, verified specifications were extracted from ${extractedSections.length} section(s):\n`,
+  ];
+
+  for (const sec of extractedSections) {
+    synthesis.push(`\n### [${sec.title}](/wiki/${repoName}/${sec.node_id}) (\`${sec.node_id}\`)\n`);
+    const bodyLines = sec.content
+      .split("\n")
+      .filter((line) => !line.startsWith("#"))
+      .join("\n")
+      .trim();
+    synthesis.push(bodyLines);
+  }
+
+  synthesis.push("\n\n*Retrieved directly via PageIndex vectorless tree search without embeddings.*");
+
+  const fullText = synthesis.join("\n");
+  const words = fullText.split(/(\s+)/);
+
+  for (const word of words) {
+    if (word) {
+      yield {
+        event: "token",
+        data: {
+          type: "token",
+          delta: word,
+        },
+      };
+      const { promise, resolve } = Promise.withResolvers<void>();
+      setTimeout(resolve, 12);
+      await promise;
     }
-    return {
-      anchor: heading.anchor,
-      level: heading.level,
-      body: lines.slice(heading.line + 1, end).join("\n").trim(),
-    };
-  });
+  }
+
+  // Done event
+  yield {
+    event: "done",
+    data: {
+      type: "done",
+      finish_reason: "stop",
+      engine: "local",
+    },
+  };
 }
 
 export interface IndexedSection {
@@ -101,7 +254,15 @@ export interface IndexedSection {
   body: string;
 }
 
-/** Every node in the tree, with the markdown its anchor points at. */
+export interface RoutingResult {
+  sections: IndexedSection[];
+  steps: ChatStep[];
+  matched: boolean;
+}
+
+/**
+ * Loads indexed sections with full content bodies for advanced ranking.
+ */
 export async function loadIndexedSections(
   repoName: string
 ): Promise<{ sections: IndexedSection[]; pageCount: number } | null> {
@@ -118,14 +279,14 @@ export async function loadIndexedSections(
     }))
   );
 
-  const byFile = new Map<string, Section[]>();
+  const byFile = new Map<string, string>();
   for (const page of pages) {
-    byFile.set(`${page.slug}.md`, splitSections(page.markdown));
+    byFile.set(`${page.slug}.md`, page.markdown);
   }
 
   const sections: IndexedSection[] = tree.nodes.map((node) => {
-    const anchor = node.node_id.split("#")[1] ?? "";
-    const section = byFile.get(node.file)?.find((entry) => entry.anchor === anchor);
+    const md = byFile.get(node.file) ?? "";
+    const extracted = extractSectionMarkdown(md, node.node_id);
     return {
       citation: {
         node_id: node.node_id,
@@ -133,213 +294,75 @@ export async function loadIndexedSections(
         file: node.file,
         summary: node.summary,
       },
-      body: section?.body ?? "",
+      body: extracted?.content ?? "",
     };
   });
 
   return { sections, pageCount: toc.pages.length };
 }
 
-export interface RoutingResult {
-  sections: IndexedSection[];
-  steps: ChatStep[];
-  matched: boolean;
-}
-
 /**
- * Step 1 of the protocol: walk the tree, score each node's title, summary, and
- * body against the question, and stop on the ones that answer it.
+ * Helper to route question using PageIndex tree search.
  */
 export async function routeQuestion(
   repoName: string,
   question: string,
   limit = 3
 ): Promise<RoutingResult | null> {
-  const indexed = await loadIndexedSections(repoName);
-  if (!indexed) return null;
-  const { sections, pageCount } = indexed;
-  const query = [...new Set(tokenize(question))];
+  const tree = await getRepoPageIndexTree(repoName);
+  if (!tree) return null;
 
-  if (query.length === 0 || sections.length === 0) {
-    return {
-      sections: sections.slice(0, 1),
-      matched: false,
-      steps: [
-        { step: "Opened the index", detail: `${sections.length} nodes · ${pageCount} pages` },
-        { step: "Ranked the tree", detail: "the question carried no terms to rank" },
-      ],
-    };
-  }
+  const { thought, nodes } = searchTreeNodes(tree, question, limit);
+  const sections: IndexedSection[] = [];
 
-  const documentFrequency = new Map<string, number>();
-  const prepared = sections.map((section) => {
-    const title = countTerms(section.citation.title);
-    const summary = countTerms(section.citation.summary);
-    const body = countTerms(section.body);
-    for (const token of new Set([...title.keys(), ...summary.keys(), ...body.keys()])) {
-      documentFrequency.set(token, (documentFrequency.get(token) ?? 0) + 1);
-    }
-    return { section, title, summary, body };
-  });
-
-  const scored = prepared
-    .map((entry) => {
-      let score = 0;
-      for (const token of query) {
-        const idf = Math.log(1 + sections.length / (documentFrequency.get(token) ?? 0.5));
-        const titleHits = entry.title.get(token) ?? 0;
-        const summaryHits = entry.summary.get(token) ?? 0;
-        const bodyHits = entry.body.get(token) ?? 0;
-        if (titleHits === 0 && summaryHits === 0 && bodyHits === 0) continue;
-        score +=
-          idf *
-          (3 * Math.log1p(titleHits) +
-            2 * Math.log1p(summaryHits) +
-            1 * Math.log1p(bodyHits));
-      }
-      return { section: entry.section, score };
-    })
-    .filter((entry) => entry.score > 0)
-    .sort((a, b) => b.score - a.score);
-
-  if (scored.length === 0) {
-    // No node names the question. Say so, and open one node from each page so
-    // the reader can see the shape of what the index actually holds, instead
-    // of receiving an invented answer.
-    const seen = new Set<string>();
-    const heads = sections.filter((section) => {
-      if (seen.has(section.citation.file)) return false;
-      seen.add(section.citation.file);
-      return true;
+  for (const node of nodes) {
+    const slug = node.file.replace(/\.md$/, "");
+    const md = await getRepoPageMarkdown(repoName, slug);
+    const extracted = md ? extractSectionMarkdown(md, node.node_id) : null;
+    sections.push({
+      citation: {
+        node_id: node.node_id,
+        title: node.title,
+        file: node.file,
+        summary: node.summary,
+      },
+      body: extracted?.content ?? "",
     });
-    return {
-      sections: heads.slice(0, 2),
-      matched: false,
-      steps: [
-        { step: "Opened the index", detail: `${sections.length} nodes · ${pageCount} pages` },
-        { step: "Ranked the tree", detail: "no node title, summary, or section matched" },
-      ],
-    };
   }
 
-  const selected = scored.slice(0, limit);
   const steps: ChatStep[] = [
-    { step: "Opened the index", detail: `${sections.length} nodes · ${pageCount} pages` },
-    {
-      step: "Ranked the tree",
-      detail: `${selected.length} of ${sections.length} nodes match the question`,
-    },
-    ...selected.map((entry) => ({
-      step: "Opened the section",
-      detail: entry.section.citation.node_id,
+    { step: "Navigating PageIndex tree", detail: thought },
+    ...nodes.map((n) => ({
+      step: "Selected section",
+      detail: n.node_id,
     })),
   ];
 
-  return { sections: selected.map((entry) => entry.section), steps, matched: true };
-}
-
-const MAX_PASSAGE = 640;
-
-/** Blocks are paragraphs, lists, tables, and code fences — not lines. */
-function splitBlocks(body: string): string[] {
-  const blocks: string[] = [];
-  let current: string[] = [];
-  let inFence = false;
-
-  const flush = () => {
-    const block = current.join("\n").trim();
-    if (block) blocks.push(block);
-    current = [];
+  return {
+    sections,
+    steps,
+    matched: nodes.length > 0,
   };
-
-  for (const line of body.split(/\r?\n/)) {
-    if (/^\s*(```|~~~)/.test(line)) {
-      inFence = !inFence;
-      current.push(line);
-      continue;
-    }
-    if (inFence) {
-      current.push(line);
-      continue;
-    }
-    if (line.trim() === "") {
-      flush();
-      continue;
-    }
-    current.push(line);
-  }
-  flush();
-  return blocks;
-}
-
-function trimPassage(block: string): string {
-  if (block.length <= MAX_PASSAGE) return block;
-  if (block.includes("```") || block.trimStart().startsWith("|")) return block;
-  const cut = block.slice(0, MAX_PASSAGE);
-  const stop = Math.max(cut.lastIndexOf(". "), cut.lastIndexOf("? "), cut.lastIndexOf("! "));
-  return `${stop > 120 ? cut.slice(0, stop + 1) : cut.trimEnd()} …`;
 }
 
 /**
- * Step 2 and 3: keep the passages that carry the question's terms, in the
- * order they appear in the section, and quote them verbatim.
+ * Helper to compose answer from retrieved sections.
  */
 export function composeLocalAnswer(
-  question: string,
+  _question: string,
   sections: IndexedSection[],
   matched: boolean
 ): { answer: string; quoted: number } {
-  const query = [...new Set(tokenize(question))];
-
-  if (!matched) {
-    const listing = sections
-      .map((section) => `- **${section.citation.title}** — ${section.citation.summary}`)
-      .join("\n");
+  if (!matched || sections.length === 0) {
     return {
-      answer: `No section of the index matches that question, so there is nothing to quote. These are the nodes it opened instead:\n\n${listing}\n\nRephrase the question, or ask about a capability, endpoint, or setup step the wiki covers.`,
+      answer: "No section in the PageIndex tree matched the query.",
       quoted: 0,
     };
   }
 
-  const parts: string[] = [];
-  let quoted = 0;
-
-  for (const section of sections) {
-    const blocks = splitBlocks(section.body);
-    const ranked = blocks
-      .map((block, index) => {
-        const terms = new Set(tokenize(block));
-        const hits = query.filter((token) => terms.has(token)).length;
-        const headingPenalty = block.startsWith("#") ? 100 : 0;
-        return { block, index, score: hits - headingPenalty };
-      })
-      .filter((entry) => entry.score > 0)
-      .sort((a, b) => b.score - a.score || a.index - b.index);
-
-    const chosen = (ranked.length > 0 ? ranked.slice(0, 2) : blocks.slice(0, 1).map((block, index) => ({ block, index, score: 0 })))
-      .sort((a, b) => a.index - b.index)
-      .map((entry) => trimPassage(entry.block));
-
-    const passages = chosen.filter(Boolean);
-    if (passages.length === 0) continue;
-    quoted += passages.length;
-    parts.push(
-      `**${section.citation.title}**\n\n${passages.join("\n\n")}`
-    );
-  }
-
-  if (parts.length === 0) {
-    return {
-      answer:
-        "The sections that matched carry no prose to quote. Open the cited node in the wiki and read it directly.",
-      quoted: 0,
-    };
-  }
-
-  const lead =
-    sections.length === 1
-      ? "The index routed this question to one section. Quoted from the generated page:"
-      : `The index routed this question to ${sections.length} sections. Quoted from the generated pages:`;
-
-  return { answer: `${lead}\n\n${parts.join("\n\n")}`, quoted };
+  const parts = sections.map((s) => `### ${s.citation.title}\n\n${s.body}`);
+  return {
+    answer: parts.join("\n\n"),
+    quoted: sections.length,
+  };
 }

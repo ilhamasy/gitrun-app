@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { LineHue, RepoToc } from "@/lib/stations";
@@ -12,7 +13,7 @@ interface LineRailProps {
   generated: string | null;
 }
 
-export function LineRail({
+function LineRailInner({
   currentRepo,
   allRepos,
   hue,
@@ -106,5 +107,20 @@ export function LineRail({
       )}
       </div>
     </aside>
+  );
+}
+export function LineRail(props: LineRailProps) {
+  return (
+    <Suspense
+      fallback={
+        <aside
+          className="rail"
+          data-line={props.hue.key}
+          aria-label={`${props.currentRepo.display_name} line`}
+        />
+      }
+    >
+      <LineRailInner {...props} />
+    </Suspense>
   );
 }

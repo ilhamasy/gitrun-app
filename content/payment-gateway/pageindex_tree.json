@@ -1,118 +1,118 @@
 {
   "repo": "payment-gateway",
-  "generated_at": "2026-10-26T12:00:00Z",
+  "generated_at": "2026-10-26T23:36:53.025913+00:00",
   "nodes": [
     {
       "node_id": "overview#core-capabilities",
       "file": "overview.md",
       "title": "Core Capabilities",
       "level": 2,
-      "summary": "Outlines idempotent charge pipeline, provider multi-tenancy, webhook ingestion, and immutable financial ledger."
+      "summary": "- Idempotent Charge Pipeline: Guaranteed exactly-once execution for debit and credit operations through Redis-backed distributed mutex locks and database uniqueness constraints. - Provider Multi-Tenancy: Dynamic routing between PSP adapters based on currency, fee optimization tables, and real-time provider health probes."
     },
     {
       "node_id": "overview#architecture-context",
       "file": "overview.md",
       "title": "Architecture Context",
       "level": 2,
-      "summary": "Traces checkout frontend through the API gateway to Redis mutexes, the PostgreSQL ledger, Kafka, and PSP adapters."
+      "summary": "[ Checkout Frontend ] \u2500\u2500> [ API Gateway ] \u2500\u2500> [ Payment Gateway Service ] \u2502 \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510 \u25bc                       \u25bc                       \u25bc [ Redis Mutex ]          [ PostgreSQL Ledger ]   [ Kafka Broker ] \u2502                       \u2502                       \u2502 \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2534\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518 \u25bc [ Stripe / Adyen ]."
     },
     {
       "node_id": "overview#tech-stack-summary",
       "file": "overview.md",
       "title": "Tech Stack Summary",
       "level": 2,
-      "summary": "Lists Go 1.23, Gin, gRPC, PostgreSQL 16, Redis 7.2, Kafka, and OpenTelemetry instrumentation details."
+      "summary": "Covers Tech Stack Summary implementation details and configuration specifications."
     },
     {
       "node_id": "overview#key-invariants",
       "file": "overview.md",
       "title": "Key Invariants",
       "level": 2,
-      "summary": "Defines rules preventing double-billing, deterministic PSP fallback, and append-only audit trail."
+      "summary": "Never double-bill: Any request carrying an Idempotency-Key header returns identical cached responses if invoked within 24 hours. Deterministic PSP fallback: If primary provider returns HTTP 5xx or times out past 3000ms, transaction gracefully degrades to secondary rail with zero duplicate authorization."
     },
     {
       "node_id": "architecture#directory-structure",
       "file": "architecture.md",
       "title": "Directory Structure",
       "level": 2,
-      "summary": "Maps cmd, internal, and pkg packages to adapters, handlers, repositories, services, and the shared idempotency and money packages."
+      "summary": "cmd/ server/            # Application bootstrap, CLI flags, graceful shutdown hooks internal/ adapter/           # External client integrations (Stripe, Adyen, BankRails) config/            # Strongly-typed environment configuration loader domain/            # Core business entities (Transaction, Account, FeeSchedule) handler/ http/            # REST controllers, input DTO validation, HTTP response mappers grpc/            # Protobuf server implementations middleware/        # Auth verification, rate limiting, request tracing, CORS repository/        # PostgreSQL queries using pgx/v5 and sqlc generated code service/           # Business workflow orchestrators (PaymentService, LedgerService) pkg/ idempotency/       # Reusable Redis-backed distributed idempotency key manager money/             # Safe arbitrary-precision currency representation."
     },
     {
       "node_id": "architecture#concurrency-and-worker-pools",
       "file": "architecture.md",
       "title": "Concurrency and Worker Pools",
       "level": 2,
-      "summary": "Explains WebhookWorkerPool with bounded channels, backpressure, and graceful worker shutdown."
+      "summary": "High-volume webhook ingestion is decoupled from database transactions using a bounded worker pool: type WebhookWorkerPool struct { jobs       chan WebhookEvent maxWorkers int wg         sync.WaitGroup } func (p WebhookWorkerPool) Start(ctx context.Context) { for i := 0; i < p.maxWorkers; i++ { p.wg.Add(1) go p.worker(ctx) } } - Inbound requests enqueue events into a non-blocking channel buffered to 5,000 items. - Workers pull jobs and execute provider verification and signature matching concurrently."
     },
     {
       "node_id": "architecture#distributed-idempotency-protocol",
       "file": "architecture.md",
       "title": "Distributed Idempotency Protocol",
       "level": 2,
-      "summary": "Step-by-step Redis lock acquisition, execution, ledger persistence, and error release protocol."
+      "summary": "Every write operation requires an Idempotency-Key header: 1. Acquire Key: SET idempotency:<key> PENDING NX EX 120."
     },
     {
       "node_id": "architecture#database-schema-partitioning",
       "file": "architecture.md",
       "title": "Database Schema & Partitioning",
       "level": 2,
-      "summary": "Details PostgreSQL ledger_entries monthly range partitioning and 64-bit integer cents storage."
+      "summary": "The ledgerentries table is partitioned monthly by createdat timestamp: CREATE TABLE ledgerentries ( id UUID PRIMARY KEY DEFAULT genrandomuuid(), accountid UUID NOT NULL, amountcents BIGINT NOT NULL, currency VARCHAR(3) NOT NULL, direction VARCHAR(6) CHECK (direction IN ('DEBIT', 'CREDIT')), referenceid VARCHAR(128) NOT NULL, createdat TIMESTAMPTZ NOT NULL DEFAULT NOW() ) PARTITION BY RANGE (createdat); All financial totals are stored as 64-bit integer cents to prevent floating point drift."
     },
     {
       "node_id": "setup#prerequisites",
       "file": "setup.md",
       "title": "Prerequisites",
       "level": 2,
-      "summary": "Names the toolchain and services required before the service can run locally."
+      "summary": "- Go 1.23+ installed locally - Docker and Docker Compose v2+ - golang-migrate CLI for database migrations - GNU Make or compatible task runner."
     },
     {
       "node_id": "setup#quickstart-via-docker-compose",
       "file": "setup.md",
       "title": "Quickstart via Docker Compose",
       "level": 2,
-      "summary": "Commands to launch Postgres, Redis, mock PSP stubs, migrate schemas, and run dev server."
+      "summary": "Spin up PostgreSQL 16, Redis 7, and mock PSP stubs:."
     },
     {
       "node_id": "setup#environment-variables",
       "file": "setup.md",
       "title": "Environment Variables",
       "level": 2,
-      "summary": "Table of configuration options including SERVER_HTTP_PORT, DATABASE_URL, and REDIS_URL."
+      "summary": "Covers Environment Variables implementation details and configuration specifications."
     },
     {
-      "node_id": "setup#verification--health-check",
+      "node_id": "setup#verification-health-check",
       "file": "setup.md",
       "title": "Verification & Health Check",
       "level": 2,
-      "summary": "Shows how to confirm a running instance is healthy and reachable."
+      "summary": "Confirm service readiness: curl http://localhost:8080/healthz."
     },
     {
       "node_id": "api-reference#standard-headers",
       "file": "api-reference.md",
       "title": "Standard Headers",
       "level": 2,
-      "summary": "Lists the Authorization, Idempotency-Key, and Content-Type headers every mutating request must carry."
+      "summary": "Every mutating request must include: - Authorization: Bearer <jwttoken> - Idempotency-Key: <uniqueuuidv4> - Content-Type: application/json ---."
     },
     {
-      "node_id": "api-reference#create-payment-intent",
+      "node_id": "api-reference#1-create-payment-intent",
       "file": "api-reference.md",
       "title": "Create Payment Intent",
       "level": 2,
-      "summary": "POST /api/v1/payments request body, headers, and 201 Created response format."
+      "summary": "Initiates authorization for card or alternative payment method. POST /api/v1/payments { \"accountid\": \"acc8f7b2c91-4d1a-4293-8f6a-9f5b2489c7d1\", \"amountcents\": 4999, \"currency\": \"USD\", \"paymentmethod\": { \"type\": \"card\", \"token\": \"tokvisa4242\" }, \"metadata\": { \"orderid\": \"ord1029384\" } } { \"id\": \"pay98234710-1284-482a-bc72-491290bbcf82\", \"status\": \"SUCCEEDED\", \"amountcents\": 4999, \"currency\": \"USD\", \"pspreference\": \"ch3N8c1t2eZvKYlo2C1gQp\", \"createdat\": \"2026-10-26T14:32:01Z\" } ---."
     },
     {
-      "node_id": "api-reference#refund-payment",
+      "node_id": "api-reference#2-refund-payment",
       "file": "api-reference.md",
       "title": "Refund Payment",
       "level": 2,
-      "summary": "POST /api/v1/payments/{payment_id}/refunds parameters and response schema."
+      "summary": "Submits full or partial refund against captured transaction. POST /api/v1/payments/{paymentid}/refunds { \"amountcents\": 1500, \"reason\": \"customerrequested\" } { \"refundid\": \"ref839210-4821-bcfa-1029384\", \"paymentid\": \"pay98234710-1284-482a-bc72-491290bbcf82\", \"amountrefundedcents\": 1500, \"status\": \"PROCESSED\" } ---."
     },
     {
       "node_id": "api-reference#error-handling",
       "file": "api-reference.md",
       "title": "Error Handling",
       "level": 2,
-      "summary": "Defines the error envelope and status codes returned by the service."
+      "summary": "Standard RFC 7807 problem details:."
     }
   ]
 }
