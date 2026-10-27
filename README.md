@@ -1,11 +1,11 @@
-# GoWiki
+# GitRun
 
 > **Autonomous Department Codebase Documentation & Vectorless Reasoning Chatbot**  
 > Compiles undocumented repositories into browsable, transit-wayfinding technical wikis with a hierarchical PageIndex tree index. Every claim in chat is grounded and cited to the exact documentation section.
 
 ---
 
-## Why GoWiki?
+## Why GitRun?
 
 Department microservices suffer from documentation rot: engineers write code, not docs, and new hires struggle to trace architectures across dozens of repositories.
 
@@ -14,7 +14,7 @@ Traditional vector RAG fails on codebases:
 - Semantic similarity search returns text that sounds similar instead of what is logically relevant.
 - Opaque chunk IDs hallucinate without traceable context.
 
-**GoWiki uses vectorless PageIndex retrieval:**
+**GitRun uses vectorless PageIndex retrieval:**
 1. **Two-Pass Doc Synthesis**: Repomix bundles the codebase into a noise-free XML skeleton; LLM pass 1 extracts a structured Table of Contents, and parallel pass 2 generates comprehensive Markdown pages (`overview`, `architecture`, `setup`, `api-reference`).
 2. **Hierarchical PageIndex Tree**: Markdown headings (`#`, `##`, `###`) are compiled into a structured tree index (`pageindex_tree.json`) with section summaries.
 3. **Reasoning-Based Chat**: An LLM (or deterministic local reader) reasons down the tree like an engineer reading a table of contents, citing the exact document node and section anchor (`/wiki/<repo>/<slug>#<anchor>`).
@@ -73,14 +73,14 @@ LLM Gateway (9router / OpenAI)
                           (Kafka / gRPC / Events)
 ```
 
-Services communicate via synchronous RPC and asynchronous brokers. GoWiki models services as colored transit lines crossing at **Interchange Stations**, allowing PageIndex to navigate across boundaries and quote contracts from multiple lines in a single cited answer.
+Services communicate via synchronous RPC and asynchronous brokers. GitRun models services as colored transit lines crossing at **Interchange Stations**, allowing PageIndex to navigate across boundaries and quote contracts from multiple lines in a single cited answer.
 
 ---
 
 ## Project Structure
 
 ```
-go-wiki/
+gitrun/
 ├── app/
 │   ├── api/chat/route.ts       # SSE chat route: proxies to FastAPI, local PageIndex fallback
 │   ├── chat/page.tsx           # Reasoning chat surface with line selector & starters

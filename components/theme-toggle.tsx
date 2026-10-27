@@ -11,7 +11,7 @@ import { Moon, Sun } from "lucide-react";
  * script before paint. The toggle subscribes to it rather than copying it into
  * component state, so there is one source of truth and no post-mount write.
  */
-const THEME_EVENT = "gowiki-theme-change";
+const THEME_EVENT = "gitrun-theme-change";
 
 function subscribe(onChange: () => void): () => void {
   window.addEventListener(THEME_EVENT, onChange);
@@ -34,7 +34,7 @@ export function ThemeToggle() {
     const next = dark ? "light" : "dark";
     document.documentElement.classList.toggle("dark", next === "dark");
     try {
-      window.localStorage.setItem("gowiki-theme", next);
+      window.localStorage.setItem("gitrun-theme", next);
     } catch {
       // Storage can be blocked; the toggle still works for this visit.
     }

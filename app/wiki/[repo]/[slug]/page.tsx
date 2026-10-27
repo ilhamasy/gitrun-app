@@ -161,7 +161,7 @@ export default async function WikiDocPage({ params }: WikiDocPageProps) {
             </nav>
 
             <p className="mt-6 text-[0.8125rem] leading-relaxed text-ink-3">
-              Generated from the repository by GoWiki. Seeded demo content —
+              Generated from the repository by GitRun. Seeded demo content —
               not a real organizational service.
             </p>
           </div>

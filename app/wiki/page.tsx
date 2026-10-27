@@ -13,7 +13,7 @@ import { Masthead } from "@/components/masthead";
 
 export const metadata = {
   title: "Wiki lines",
-  description: "Every repository GoWiki has compiled into a browsable wiki line.",
+  description: "Every repository GitRun has compiled into a browsable wiki line.",
 };
 
 export default async function WikiDirectoryPage() {
@@ -65,7 +65,7 @@ export default async function WikiDirectoryPage() {
           <div className="border border-dashed border-hairline-strong px-6 py-16 text-center">
             <p className="signage text-[1.5rem]">No lines on the board yet</p>
             <p className="mx-auto mt-2 max-w-[46ch] text-ink-2">
-              A line appears here once GoWiki has compiled a repository into
+              A line appears here once GitRun has compiled a repository into
               pages. Nothing is generated at request time, so this board stays
               accurate when the network does not.
             </p>
@@ -177,7 +177,7 @@ export default async function WikiDirectoryPage() {
         </div>
 
         <p className="mt-6 max-w-[62ch] text-[0.8125rem] leading-relaxed text-ink-3">
-          Every line above was compiled from a seeded demo repository. GoWiki
+          Every line above was compiled from a seeded demo repository. GitRun
           does not host or fetch source on this machine, so the board is a
           fixture for the pitch rather than a mirror of an organization.
         </p>

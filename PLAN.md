@@ -1,4 +1,4 @@
-# GoWiki: Master Project Plan & Architecture Contract
+# GitRun: Master Project Plan & Architecture Contract
 
 **Hackathon Project**: Autonomous Department Codebase Documentation & Vectorless Reasoning Chatbot  
 **Tech Stack**: Next.js 16 (React 19, Tailwind v4, shadcn/ui) + Python 3.11 FastAPI + Repomix + 9router LLM + VectifyAI PageIndex Tree Search  
@@ -14,7 +14,7 @@ Department repositories suffer from documentation rot:
 - Onboarding pain: new hires struggle to trace architectures across tens of microservices.
 - Traditional RAG fails for codebases: chunking destroys file hierarchy, loses class/module relationships, and hallucinates without whole-repo context.
 
-### The Solution: GoWiki
+### The Solution: GitRun
 1. **Automated Ingestion**: Repomix bundles repositories into token-efficient XML skeletons with noise stripped (tests, lockfiles, binaries).
 2. **Two-Pass Doc Synthesis**:
    - *Pass 1*: Fast LLM scan generates structured Table of Contents (TOC) schema (`overview`, `architecture`, `setup`, `api-reference`).

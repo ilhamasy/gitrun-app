@@ -152,7 +152,7 @@ class PageIndexEngine:
         formatted_index = "\n".join(index_summary)
 
         prompt = (
-            "You are the PageIndex Retrieval Navigator for GoWiki.\n"
+            "You are the PageIndex Retrieval Navigator for GitRun.\n"
             "Analyze the user's question and select the 1 to 3 most relevant node_id values from the tree index.\n\n"
             "Tree Index:\n"
             f"{formatted_index}\n\n"
@@ -301,7 +301,7 @@ class PageIndexEngine:
             context_str = "\n\n---\n\n".join(context_blocks)
 
             system_prompt = (
-                "You are GoWiki Assistant, an autonomous technical documentation expert.\n"
+                "You are GitRun Assistant, an autonomous technical documentation expert.\n"
                 "Answer the user's question accurately using ONLY the provided documentation sections below.\n"
                 "When referencing facts, rules, or steps, cite the node id in brackets like `[architecture#distributed-idempotency-protocol]`.\n"
                 "Provide code snippets, parameters, or configurations whenever relevant.\n\n"

@@ -5,7 +5,7 @@ import { Masthead } from "@/components/masthead";
 export const metadata = {
   title: "Document a repository — pipeline not connected",
   description:
-    "The five-stage GoWiki ingestion pipeline. The runner is not part of this build; this surface documents what it would execute.",
+    "The five-stage GitRun ingestion pipeline. The runner is not part of this build; this surface documents what it would execute.",
 };
 
 const STAGES = [

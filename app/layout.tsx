@@ -24,14 +24,14 @@ const code = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "GoWiki — generated wikis for department codebases",
-    template: "%s · GoWiki",
+    default: "GitRun — generated wikis for department codebases",
+    template: "%s · GitRun",
   },
   description:
-    "GoWiki compiles an undocumented repository into a browsable wiki with a hierarchical tree index, so every answer names the section it came from.",
+    "GitRun compiles an undocumented repository into a browsable wiki with a hierarchical tree index, so every answer names the section it came from.",
 };
 
-const themeScript = `(function(){try{var s=localStorage.getItem("gowiki-theme");var d=window.matchMedia("(prefers-color-scheme: dark)").matches;if(s==="dark"||(!s&&d)){document.documentElement.classList.add("dark")}}catch(e){}})();`;
+const themeScript = `(function(){try{var s=localStorage.getItem("gitrun-theme");var d=window.matchMedia("(prefers-color-scheme: dark)").matches;if(s==="dark"||(!s&&d)){document.documentElement.classList.add("dark")}}catch(e){}})();`;
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (

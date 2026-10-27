@@ -1,5 +1,5 @@
 """
-GoWiki Backend Service (FastAPI).
+GitRun Backend Service (FastAPI).
 Provides /api/chat SSE streaming with PageIndex vectorless reasoning,
 repository discovery, and tree indexing endpoints.
 """
@@ -34,7 +34,7 @@ else:
     CONTENT_DIR = DEFAULT_CONTENT_DIR
 
 app = FastAPI(
-    title="GoWiki Backend API",
+    title="GitRun Backend API",
     description="Vectorless tree search, document reasoning, and repository documentation service.",
     version="0.2.0",
 )
@@ -70,7 +70,7 @@ async def health_check():
     """Health check endpoint."""
     return {
         "status": "healthy",
-        "service": "gowiki-backend",
+        "service": "gitrun-backend",
         "llm_configured": llm_client.is_configured(),
         "content_dir": str(CONTENT_DIR),
     }

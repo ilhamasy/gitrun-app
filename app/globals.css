@@ -6,7 +6,7 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ---------------------------------------------------------------------------
-   GoWiki design standard
+   GitRun design standard
    A generated wiki is a transit line: pages are stations, sections are stops,
    and a citation is a station address. Read the full rationale in DESIGN.md.
    --------------------------------------------------------------------------- */

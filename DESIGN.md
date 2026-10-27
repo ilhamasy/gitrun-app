@@ -1,5 +1,5 @@
 ---
-name: GoWiki
+name: GitRun
 description: Generated repository wikis drawn as transit lines, where every section number is a citation address.
 colors:
   paper: '#f4f4ef'
@@ -228,13 +228,13 @@ components:
     padding: 5px 12px
 ---
 
-# Design System: GoWiki
+# Design System: GitRun
 
 ## Overview
 
 **Creative North Star: "The Signal Box"**
 
-GoWiki is drawn as the instrument room of a transit authority: a schematic in hairlines on paper, a line that names every stop, and one lamp that says where you are standing. Every mark on the page is an address or a direction — a station number, a pip on the line, a citation that names the section it came from. The surface should look *issued* rather than *styled*, the way a printed timetable looks set rather than designed: paper ground, an enamel-blue header field, condensed signage capitals for anything that names a place, and a serif reading column for anything that explains one.
+GitRun is drawn as the instrument room of a transit authority: a schematic in hairlines on paper, a line that names every stop, and one lamp that says where you are standing. Every mark on the page is an address or a direction — a station number, a pip on the line, a citation that names the section it came from. The surface should look *issued* rather than *styled*, the way a printed timetable looks set rather than designed: paper ground, an enamel-blue header field, condensed signage capitals for anything that names a place, and a serif reading column for anything that explains one.
 
 Density is high and volume is low. Many quiet 1px hairlines carry structure, so almost nothing needs to shout: the largest ink in the system is a condensed display line, and the loudest colour is a single yellow lamp that appears on three elements at most. Corners are square down to the last token. There are no shadows anywhere in the build — depth is a matter of which field a thing sits on, not how far it floats above the page.
 

@@ -12,7 +12,7 @@ import {
 import { Masthead } from "@/components/masthead";
 
 export const metadata = {
-  title: "GoWiki — generated wikis for department codebases",
+  title: "GitRun — generated wikis for department codebases",
 };
 
 export default async function Home() {
@@ -61,7 +61,7 @@ export default async function Home() {
               </h1>
 
               <p className="mt-5 max-w-[52ch] text-[1.0625rem] leading-relaxed text-ink-2">
-                GoWiki bundles a repository, compiles the same four pages every
+                GitRun bundles a repository, compiles the same four pages every
                 time, and indexes their headings into a tree. Answers navigate
                 that tree, so each claim arrives with the section — and only
                 that section — it was read from.
@@ -277,7 +277,7 @@ export default async function Home() {
       <footer className="border-t border-hairline bg-paper">
         <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-between gap-3 px-4 py-5 sm:px-6">
           <p className="label-wide text-ink-3">
-            GoWiki · Department hackathon build
+            GitRun · Department hackathon build
           </p>
           <p className="text-[0.8125rem] text-ink-3">
             Seeded repositories are demo fixtures, not organizational services.

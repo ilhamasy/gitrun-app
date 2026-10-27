@@ -51,7 +51,7 @@ export function Masthead() {
       <div className="mx-auto flex h-14 max-w-[1600px] items-stretch gap-5 px-4 sm:gap-8 sm:px-6">
         <Link href="/" className="wordmark shrink-0 self-center">
           <span className="pip-mark" aria-hidden="true" />
-          <span className="wordmark-text">GoWiki</span>
+          <span className="wordmark-text">GitRun</span>
         </Link>
 
         <Suspense

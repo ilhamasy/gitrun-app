@@ -9,7 +9,7 @@
 
 ### Minute 0:00 - 0:45: The Problem & The Landing Page
 - Open `http://localhost:3000`.
-- Pitch hook: *"Every department has dozens of microservices with empty READMEs. Traditional RAG chops files into random 500-token chunks and hallucinates. We built GoWiki: autonomous doc generation powered by vectorless PageIndex tree reasoning."*
+- Pitch hook: *"Every department has dozens of microservices with empty READMEs. Traditional RAG chops files into random 500-token chunks and hallucinates. We built GitRun: autonomous doc generation powered by vectorless PageIndex tree reasoning."*
 
 ### Minute 0:45 - 1:45: Live Ingestion Stepper
 - Click "Ingest New Repo" (`/generate`).

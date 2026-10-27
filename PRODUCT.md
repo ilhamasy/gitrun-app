@@ -15,11 +15,11 @@ web
 
 ## Product Purpose
 
-GoWiki turns an undocumented repository into a browsable, structured technical wiki and a grounded question-answering surface. It exists because documentation written by hand does not survive the pace of departmental code changes. Success means an engineer can go from a bare repository to trustworthy, cited answers about its architecture in minutes, without a human writing documentation first.
+GitRun turns an undocumented repository into a browsable, structured technical wiki and a grounded question-answering surface. It exists because documentation written by hand does not survive the pace of departmental code changes. Success means an engineer can go from a bare repository to trustworthy, cited answers about its architecture in minutes, without a human writing documentation first.
 
 ## Positioning
 
-Retrieval is vectorless. Instead of chunking source into embeddings and hoping similarity finds the right passage, GoWiki compiles the documentation into a hierarchical tree index and lets the model reason down that tree, the way a reader works through a table of contents. Answers name the exact document node they came from, so every claim is traceable to a section a human can open and read.
+Retrieval is vectorless. Instead of chunking source into embeddings and hoping similarity finds the right passage, GitRun compiles the documentation into a hierarchical tree index and lets the model reason down that tree, the way a reader works through a table of contents. Answers name the exact document node they came from, so every claim is traceable to a section a human can open and read.
 
 ## Operating Context
 
@@ -41,7 +41,7 @@ Retrieval is vectorless. Instead of chunking source into embeddings and hoping s
 
 ## Brand Commitments
 
-The product name is GoWiki. No visual identity, palette, or typographic system has been made binding yet.
+The product name is GitRun. No visual identity, palette, or typographic system has been made binding yet.
 
 ## Accessibility & Inclusion
 
