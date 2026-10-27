@@ -31,7 +31,14 @@ function LineRailInner({
       aria-label={`${currentRepo.display_name} line`}
     >
       <div className="rail-head flex items-baseline justify-between gap-3 border-b border-hairline px-4 py-3">
-        <span className="label text-ink">Line {currentRepo.repo_name}</span>
+        <div className="flex flex-col">
+          <span className="label text-ink">Line {currentRepo.repo_name}</span>
+          {currentRepo.is_system && (
+            <span className="mt-0.5 font-mono text-[0.625rem] font-bold text-line-cedar tracking-wider uppercase">
+              Federated System Mesh
+            </span>
+          )}
+        </div>
         <span className="data text-ink-3">
           {String(currentIndex >= 0 ? currentIndex + 1 : 1).padStart(2, "0")}/
           {String(currentRepo.pages.length).padStart(2, "0")}
@@ -74,6 +81,56 @@ function LineRailInner({
           Line overview
         </Link>
       </div>
+
+      {currentRepo.system && (
+        <div className="border-t border-hairline bg-paper-2/60 px-4 py-3">
+          <p className="label-wide mb-1 text-ink-3">System Mesh</p>
+          <Link
+            href={`/wiki/${currentRepo.system.system_name}/overview`}
+            className="text-xs font-semibold text-ink underline decoration-signal decoration-2 underline-offset-2 hover:text-enamel"
+          >
+            {currentRepo.system.display_name}
+          </Link>
+
+          {currentRepo.system.peer_services && currentRepo.system.peer_services.length > 0 && (
+            <div className="mt-2.5">
+              <p className="label-wide mb-1.5 text-ink-3">Peer Microservices</p>
+              <ul className="flex flex-col gap-1">
+                {currentRepo.system.peer_services.map((peer) => (
+                  <li key={peer.repo_name}>
+                    <Link
+                      href={`/wiki/${peer.repo_name}/overview`}
+                      className="flex items-center gap-1.5 text-xs text-ink-2 hover:text-ink"
+                    >
+                      <span className="h-1.5 w-1.5 bg-line-cedar" aria-hidden="true" />
+                      <span className="truncate">{peer.display_name}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+
+      {currentRepo.is_system && currentRepo.member_repos && (
+        <div className="border-t border-hairline bg-paper-2/60 px-4 py-3">
+          <p className="label-wide mb-1.5 text-ink-3">Member Services ({currentRepo.member_repos.length})</p>
+          <ul className="flex flex-col gap-1.5">
+            {currentRepo.member_repos.map((m) => (
+              <li key={m}>
+                <Link
+                  href={`/wiki/${m}/overview`}
+                  className="flex items-center gap-1.5 text-xs text-ink-2 hover:text-ink font-mono"
+                >
+                  <span className="h-1.5 w-1.5 bg-signal" aria-hidden="true" />
+                  <span>{m}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {allRepos.length > 1 && (
         <div className="border-t border-hairline px-4 py-3">

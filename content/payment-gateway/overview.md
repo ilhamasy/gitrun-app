@@ -39,3 +39,14 @@ The **Payment Gateway Service** acts as the centralized financial transaction pr
 1. **Never double-bill**: Any request carrying an `Idempotency-Key` header returns identical cached responses if invoked within 24 hours.
 2. **Deterministic PSP fallback**: If primary provider returns HTTP 5xx or times out past 3000ms, transaction gracefully degrades to secondary rail with zero duplicate authorization.
 3. **Audit Log Trail**: All configuration changes and manual operator balance adjustments are persisted into an append-only audit table.
+
+## System Context & Peer Services
+
+This repository operates as the core transaction router within the **[Checkout & Identity Mesh](/wiki/checkout-mesh/overview)**.
+
+| Peer Microservice | Language | Role & Domain Boundary |
+| :--- | :--- | :--- |
+| [Auth Sentinel Identity Service](/wiki/auth-sentinel/overview) | TypeScript · Node.js | Issues RS256 JWT tokens verified on every transaction call. |
+
+- **System Topology**: View full distributed interaction flows in the [Checkout & Identity Mesh Architecture](/wiki/checkout-mesh/architecture).
+- **Local Multi-Service Orchestration**: Run this service alongside all peers via the unified [Checkout & Identity Mesh Setup](/wiki/checkout-mesh/setup).

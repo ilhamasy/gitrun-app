@@ -11,7 +11,7 @@ async def test_tree_indexer_dry_run():
     tree = await indexer.build_repo_tree("payment-gateway", dry_run=True)
     assert tree["repo"] == "payment-gateway"
     assert "generated_at" in tree
-    assert len(tree["nodes"]) == 16
+    assert len(tree["nodes"]) >= 16
 
     node_ids = [n["node_id"] for n in tree["nodes"]]
     assert "overview#core-capabilities" in node_ids

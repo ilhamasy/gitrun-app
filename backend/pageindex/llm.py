@@ -77,9 +77,30 @@ class LLMClient:
                 json=payload,
             )
             resp.raise_for_status()
+            text = resp.text.strip()
+            if text.startswith("data:") or "text/event-stream" in resp.headers.get("content-type", ""):
+                collected = []
+                for line in text.split("\n"):
+                    line = line.strip()
+                    if line.startswith("data: "):
+                        raw_data = line[len("data: ") :].strip()
+                        if raw_data == "[DONE]":
+                            break
+                        try:
+                            chunk = json.loads(raw_data)
+                            delta = chunk["choices"][0].get("delta", {})
+                            content = delta.get("content")
+                            if content:
+                                collected.append(content)
+                            msg = chunk["choices"][0].get("message", {})
+                            if msg and msg.get("content"):
+                                collected.append(msg["content"])
+                        except Exception:
+                            continue
+                if collected:
+                    return "".join(collected)
             data = resp.json()
             return data["choices"][0]["message"]["content"]
-
     async def stream_chat(
         self,
         messages: List[Dict[str, str]],

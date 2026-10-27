@@ -1,6 +1,6 @@
 # Phase 5 Specification: Live Ingestion Stepper UI
 
-**Status**: Pending  
+**Status**: Completed  
 **Route**: `app/generate/page.tsx`  
 **Purpose**: Hackathon pitch visual center. Lets judges type a GitHub URL or local path and watch the live ingestion pipeline run in real-time.
 

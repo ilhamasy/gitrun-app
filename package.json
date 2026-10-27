@@ -4,9 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:all": "./run.sh",
+    "dev:backend": "PYTHONPATH=. backend/venv/bin/uvicorn backend.main:app --reload --port 8000",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:backend": "PYTHONPATH=. backend/venv/bin/pytest backend/tests"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

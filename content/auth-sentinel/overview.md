@@ -11,3 +11,14 @@
 ## Security Boundaries
 
 All access tokens are minted as RS256 signed JWTs with a strict 15-minute lifetime. Refresh tokens are opaque 256-bit cryptographically secure random tokens stored in Redis with rotating replay detection.
+
+## System Context & Peer Services
+
+This repository operates as the centralized identity provider within the **[Checkout & Identity Mesh](/wiki/checkout-mesh/overview)**.
+
+| Peer Microservice | Language | Role & Domain Boundary |
+| :--- | :--- | :--- |
+| [Payment Gateway Service](/wiki/payment-gateway/overview) | Go 1.23 | Validates RS256 JWT claims before executing financial debit operations. |
+
+- **System Topology**: View full distributed interaction flows in the [Checkout & Identity Mesh Architecture](/wiki/checkout-mesh/architecture).
+- **Local Multi-Service Orchestration**: Run this service alongside all peers via the unified [Checkout & Identity Mesh Setup](/wiki/checkout-mesh/setup).

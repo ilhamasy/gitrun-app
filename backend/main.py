@@ -17,21 +17,25 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
+from backend.ingestion.pipeline import IngestionPipeline
+from backend.ingestion.system_pipeline import SystemIngestionPipeline
 from backend.pageindex.indexer import TreeIndexer
 from backend.pageindex.llm import LLMClient
 from backend.pageindex.reasoning import PageIndexEngine
-
-# Load environment variables
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent
 DEFAULT_CONTENT_DIR = (BASE_DIR.parent / "content").resolve()
-raw_content = os.environ.get("CONTENT_DIR")
-if raw_content:
-    p = Path(raw_content)
-    CONTENT_DIR = p.resolve() if p.is_absolute() else (BASE_DIR / p).resolve()
-else:
-    CONTENT_DIR = DEFAULT_CONTENT_DIR
+DEFAULT_TEMP_DIR = (BASE_DIR.parent / "temp").resolve()
+
+def _resolve_dir(env_val: Optional[str], default_path: Path) -> Path:
+    if not env_val:
+        return default_path
+    p = Path(env_val)
+    return (BASE_DIR / p).resolve() if not p.is_absolute() else p.resolve()
+
+CONTENT_DIR = _resolve_dir(os.environ.get("CONTENT_DIR"), DEFAULT_CONTENT_DIR)
+TEMP_DIR = _resolve_dir(os.environ.get("TEMP_DIR"), DEFAULT_TEMP_DIR)
 
 app = FastAPI(
     title="GoWiki Backend API",
@@ -52,7 +56,8 @@ app.add_middleware(
 llm_client = LLMClient()
 engine = PageIndexEngine(content_dir=CONTENT_DIR, llm_client=llm_client)
 indexer = TreeIndexer(content_dir=CONTENT_DIR, llm_client=llm_client)
-
+pipeline = IngestionPipeline(content_dir=CONTENT_DIR, temp_dir=TEMP_DIR, llm_client=llm_client)
+system_pipeline = SystemIngestionPipeline(content_dir=CONTENT_DIR, temp_dir=TEMP_DIR, llm_client=llm_client)
 
 class ChatMessage(BaseModel):
     role: str = Field(..., description="Role: 'user', 'assistant', or 'system'")
@@ -64,6 +69,21 @@ class ChatRequest(BaseModel):
     messages: List[ChatMessage] = Field(..., description="Conversation history messages")
 
 
+class GenerateRequest(BaseModel):
+    url: str = Field(..., description="Git clone URL or local repository path")
+    branch: Optional[str] = Field(None, description="Optional branch or tag to clone")
+
+
+class RepoItem(BaseModel):
+    name: str = Field(..., description="Repository / service name")
+    url: str = Field(..., description="Git clone URL or local directory name")
+    branch: Optional[str] = Field(None, description="Branch or tag")
+
+
+class SystemGenerateRequest(BaseModel):
+    system_name: str = Field(..., description="Unique slug for the multi-repo system")
+    display_name: Optional[str] = Field(None, description="Human readable system title")
+    repos: List[RepoItem] = Field(..., description="List of microservice repositories")
 @app.get("/health")
 @app.get("/api/health")
 async def health_check():
@@ -73,8 +93,9 @@ async def health_check():
         "service": "gowiki-backend",
         "llm_configured": llm_client.is_configured(),
         "content_dir": str(CONTENT_DIR),
+        "temp_dir": str(TEMP_DIR),
+        "pipeline_ready": True,
     }
-
 
 @app.get("/api/repos")
 async def list_repositories():
@@ -171,6 +192,80 @@ async def chat_endpoint(payload: ChatRequest):
 
     return StreamingResponse(
         sse_event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
+async def _stream_generation(source: str, branch: Optional[str] = None):
+    async for event in pipeline.run(source=source, branch=branch):
+        yield event.to_sse()
+
+
+@app.post("/api/generate")
+async def generate_endpoint(payload: GenerateRequest):
+    """
+    Triggers repository ingestion pipeline and streams SSE progress events.
+    Supports remote Git repository URLs and local file system paths.
+    """
+    return StreamingResponse(
+        _stream_generation(source=payload.url, branch=payload.branch),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
+@app.get("/api/generate/stream")
+async def generate_stream_endpoint(url: str, branch: Optional[str] = None):
+    """
+    EventSource / SSE GET endpoint for real-time live ingestion streaming.
+    """
+    return StreamingResponse(
+        _stream_generation(source=url, branch=branch),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
+async def _stream_system_generation(
+    system_name: str,
+    repos: List[Dict[str, Any]],
+    display_name: Optional[str] = None,
+):
+    async for event in system_pipeline.run(
+        system_name=system_name,
+        repos=repos,
+        display_name=display_name,
+    ):
+        yield event.to_sse()
+
+
+@app.post("/api/generate/system")
+async def generate_system_endpoint(payload: SystemGenerateRequest):
+    """
+    Triggers Multi-Repo Microservice Mesh ingestion.
+    Clones all member repositories in parallel, extracts inter-service interactions,
+    synthesizes federated architecture with cross-links, and builds PageIndex trees.
+    """
+    repos_payload = [r.model_dump() for r in payload.repos]
+    return StreamingResponse(
+        _stream_system_generation(
+            system_name=payload.system_name,
+            repos=repos_payload,
+            display_name=payload.display_name,
+        ),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",

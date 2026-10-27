@@ -9,12 +9,27 @@ export interface RepoPage {
   description: string;
 }
 
+export interface PeerService {
+  repo_name: string;
+  display_name: string;
+  role: string;
+}
+
+export interface SystemMeta {
+  system_name: string;
+  display_name: string;
+  peer_services?: PeerService[];
+}
+
 export interface RepoToc {
   repo_name: string;
   display_name: string;
   description: string;
   language?: string;
   stars?: number;
+  is_system?: boolean;
+  system?: SystemMeta;
+  member_repos?: string[];
   pages: RepoPage[];
 }
 

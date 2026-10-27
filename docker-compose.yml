@@ -1,0 +1,34 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: gowiki-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - ROUTER_API_BASE=${ROUTER_API_BASE:-https://9router.andhikadev.my.id/v1}
+      - ROUTER_API_KEY=${ROUTER_API_KEY:-sk-9208b86cd0367969-11hokx-c26d070a}
+      - ROUTER_MODEL=${ROUTER_MODEL:-Personal_Combo}
+      - CONTENT_DIR=/app/content
+      - TEMP_DIR=/app/temp
+    volumes:
+      - ./content:/app/content
+      - ./temp:/app/temp
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gowiki-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://backend:8000
+      - BACKEND_API_URL=http://backend:8000
+    depends_on:
+      - backend
+    volumes:
+      - ./content:/app/content:ro
+    restart: unless-stopped

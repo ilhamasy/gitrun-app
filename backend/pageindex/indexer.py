@@ -83,8 +83,7 @@ class TreeIndexer:
             if md_file.name not in ordered_files:
                 ordered_files.append(md_file.name)
 
-        nodes: List[Dict[str, Any]] = []
-
+        all_sections: List[SectionNode] = []
         for filename in ordered_files:
             file_path = repo_path / filename
             if not file_path.exists():
@@ -95,19 +94,19 @@ class TreeIndexer:
                 content = f.read()
 
             sections = parse_markdown_sections(content, slug=slug, target_levels=(2,))
+            all_sections.extend(sections)
 
-            for sec in sections:
-                summary = await self.summarize_section(sec)
-                nodes.append(
-                    {
-                        "node_id": sec.node_id,
-                        "file": sec.file,
-                        "title": sec.title,
-                        "level": sec.level,
-                        "summary": summary,
-                    }
-                )
+        async def summarize_node(sec: SectionNode) -> Dict[str, Any]:
+            summary = await self.summarize_section(sec)
+            return {
+                "node_id": sec.node_id,
+                "file": sec.file,
+                "title": sec.title,
+                "level": sec.level,
+                "summary": summary,
+            }
 
+        nodes = list(await asyncio.gather(*[summarize_node(s) for s in all_sections]))
         tree = {
             "repo": repo_name,
             "generated_at": datetime.now(timezone.utc).isoformat(),

@@ -206,13 +206,13 @@ When managing multiple microservices across a department, a Tier-1 System Tree r
 
 | Phase | Title | Scope & Artifacts | Status | Owner |
 | :--- | :--- | :--- | :--- | :--- |
-| **Phase 1** | **Backend Ingestion Engine** | Python FastAPI, Git clone, Repomix runner, 2-Pass LLM generator, writes to `content/` | Pending | Backend |
+| **Phase 1** | **Backend Ingestion Engine** | Python FastAPI, Git clone, Repomix runner, 2-Pass LLM generator, writes to `content/` | **COMPLETED** | Backend |
 | **Phase 2** | **PageIndex Tree Engine** | Markdown heading AST parser, LLM node summarizer, `/api/chat` tree-reasoning & streaming | **COMPLETED** | Backend / AI |
 | **Phase 3** | **Frontend Wiki Reader** | Tailwind v4 + shadcn UI, layout, sidebar, markdown renderer, table of contents, seed data | **COMPLETED** | Frontend |
 | **Phase 4** | **Reasoning Chat Surface** | Dedicated `/chat` page, repo-scoped thread, node citation list, SSE streaming reader, local PageIndex engine | **COMPLETED** (local engine) | Fullstack |
-| **Phase 5** | **Live Ingestion Stepper** | `/generate` page, URL input, real-time SSE progress tracker, auto-redirect on finish | Pending | Frontend |
-| **Phase 6** | **End-to-End Integration & Demo** | Docker compose / run script, 9router credentials, rehearse 3-minute pitch scenario | Pending | Team |
-| **Phase 7** | **Microservices Network & Cross-Service Reasoning** | Two-tier PageIndex (System Tree-of-Trees), multi-service chat routing, transit interchange map UI, cross-service dependency tracing | Planned | Fullstack / Architecture |
+| **Phase 5** | **Live Ingestion Stepper** | `/generate` page, URL input, real-time SSE progress tracker, auto-redirect on finish | **COMPLETED** | Frontend |
+| **Phase 6** | **End-to-End Integration & Demo** | Docker compose / run script, 9router credentials, rehearse 3-minute pitch scenario | **COMPLETED** | Team |
+| **Phase 7** | **Microservices Network & Federated Reasoning Mesh** | Two-tier PageIndex (System Tree-of-Trees), parallel clone/bundle, topology extractor, cross-service links & chat | **COMPLETED** | Fullstack / Architecture |
 
 ---
 
