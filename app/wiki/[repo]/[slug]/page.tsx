@@ -71,14 +71,10 @@ export default async function WikiDocPage({ params }: WikiDocPageProps) {
 
   const pageNodes =
     tree?.nodes.filter((node) => node.file === `${slug}.md`) ?? [];
-  // The index covers H2 sections. Compare like with like, and only trust a
-  // summary when the index actually reaches every section of this page —
-  // otherwise the aside would describe one section beside all of them.
+  // The index covers H2 sections. Compare like with like, and only claim the
+  // page is indexed when every section of it actually appears.
   const sectionCount = headings.filter((heading) => heading.level === 2).length;
   const indexCoversPage = pageNodes.length >= sectionCount && sectionCount > 0;
-  const summary = indexCoversPage
-    ? (pageNodes.find((node) => node.level === 2)?.summary ?? null)
-    : null;
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -168,7 +164,7 @@ export default async function WikiDocPage({ params }: WikiDocPageProps) {
           </div>
         </main>
 
-        <StationIndex headings={headings} summary={summary} />
+        <StationIndex headings={headings} />
       </div>
     </div>
   );

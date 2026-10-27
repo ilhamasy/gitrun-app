@@ -1,19 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { NumberedHeading } from "@/lib/stations";
 
 interface StationIndexProps {
   headings: NumberedHeading[];
-  summary: string | null;
 }
 
 /**
  * The station index in the right margin. Where you are is marked by the same
  * signal yellow the rail uses, so one state means one thing everywhere.
  */
-export function StationIndex({ headings, summary }: StationIndexProps) {
+export function StationIndex({ headings }: StationIndexProps) {
   const [active, setActive] = useState<string | null>(headings[0]?.id ?? null);
+  const [fadeBottom, setFadeBottom] = useState(false);
+  const listRef = useRef<HTMLUListElement | null>(null);
 
   useEffect(() => {
     const elements = headings
@@ -35,23 +36,64 @@ export function StationIndex({ headings, summary }: StationIndexProps) {
     return () => observer.disconnect();
   }, [headings]);
 
+  // A long index scrolls inside the margin instead of running past the bottom
+  // of the window. Fade the cut edge only while there is more to reach.
+  useEffect(() => {
+    const list = listRef.current;
+    if (!list) return;
+
+    const measure = () =>
+      setFadeBottom(list.scrollTop + list.clientHeight < list.scrollHeight - 1);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(list);
+    list.addEventListener("scroll", measure, { passive: true });
+    return () => {
+      observer.disconnect();
+      list.removeEventListener("scroll", measure);
+    };
+  }, [headings]);
+
+  // The index scrolls on its own once a page has more sections than fit beside
+  // it, so the current station is kept in view rather than left below the fold.
+  useEffect(() => {
+    const list = listRef.current;
+    const current = list?.querySelector<HTMLElement>('[data-active="true"]');
+    if (!list || !current) return;
+
+    const listBox = list.getBoundingClientRect();
+    const currentBox = current.getBoundingClientRect();
+    if (currentBox.top < listBox.top) {
+      list.scrollTop -= listBox.top - currentBox.top;
+    } else if (currentBox.bottom > listBox.bottom) {
+      list.scrollTop += currentBox.bottom - listBox.bottom;
+    }
+  }, [active]);
+
   if (headings.length === 0) return null;
 
   return (
     <div className="station-aside hidden shrink-0 xl:block xl:w-[248px] xl:pl-10">
-      <div className="sticky top-[6.25rem] flex flex-col gap-4 py-8 pl-6 pr-6">
-        {summary && (
-          <div>
-            <p className="label-wide mb-2 text-ink-3">Station summary</p>
-            <p className="text-[0.8125rem] leading-relaxed text-ink-2">{summary}</p>
-          </div>
-        )}
-
-        <nav aria-label="Stations on this page">
-          <p className="label-wide mb-2 border-b border-hairline pb-1.5 text-ink-3">
+      <div className="sticky top-[6.25rem] flex max-h-[calc(100vh-8.75rem)] flex-col py-8 pl-6 pr-6">
+        <nav
+          aria-label="Stations on this page"
+          className="flex min-h-0 flex-col"
+        >
+          <p className="label-wide mb-2 shrink-0 border-b border-hairline pb-1.5 text-ink-3">
             On this page
           </p>
-          <ul className="flex flex-col">
+          <ul
+            ref={listRef}
+            className="flex min-h-0 flex-col overflow-y-auto overscroll-contain pb-8 pr-1 [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5"
+            style={
+              fadeBottom
+                ? {
+                    maskImage:
+                      "linear-gradient(to bottom, #000 calc(100% - 1.75rem), transparent 100%)",
+                  }
+                : undefined
+            }
+          >
             {headings.map((heading) => (
               <li key={heading.id}>
                 <a
