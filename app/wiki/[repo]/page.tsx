@@ -5,6 +5,7 @@ export const instant = false;
 
 export async function generateStaticParams() {
   const repos = await getAllRepos();
+  if (repos.length === 0) return [{ repo: "_placeholder" }];
   return repos.map((repo) => ({ repo: repo.repo_name }));
 }
 

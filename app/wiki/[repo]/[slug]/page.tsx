@@ -20,6 +20,7 @@ export const instant = false;
 
 export async function generateStaticParams() {
   const repos = await getAllRepos();
+  if (repos.length === 0) return [{ repo: "_placeholder", slug: "overview" }];
   return repos.flatMap((repo) =>
     repo.pages.map((page) => ({ repo: repo.repo_name, slug: page.slug }))
   );

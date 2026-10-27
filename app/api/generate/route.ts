@@ -1,3 +1,5 @@
+import fs from "fs";
+import path from "path";
 import { NextRequest } from "next/server";
 
 function deriveRepoName(source: string): string {
@@ -99,10 +101,86 @@ async function handleGenerate(url: string, branch?: string) {
         });
         await delay(1100);
 
-        // If repo exists locally (e.g. payment-gateway), redirect to it, else fallback to payment-gateway overview
-        const targetRepo = ["payment-gateway", "auth-sentinel"].includes(repoName)
-          ? repoName
-          : "payment-gateway";
+        const contentDir = path.join(process.cwd(), "content");
+        const repoDir = path.join(contentDir, repoName);
+        if (!fs.existsSync(path.join(repoDir, "toc.json"))) {
+          fs.mkdirSync(repoDir, { recursive: true });
+          const dispName = repoName
+            .replace(/[-_]/g, " ")
+            .replace(/\b\w/g, (c) => c.toUpperCase());
+          const toc = {
+            repo_name: repoName,
+            display_name: `${dispName} Service`,
+            description: `Autonomous architectural documentation and PageIndex index for ${dispName}.`,
+            language: "TypeScript",
+            stars: 42,
+            pages: [
+              {
+                slug: "overview",
+                title: "System Overview",
+                description: "Core responsibilities, domain boundaries, and high-level architecture.",
+              },
+              {
+                slug: "architecture",
+                title: "Internal Architecture",
+                description: "Component interaction, data flow, and runtime mechanics.",
+              },
+              {
+                slug: "setup",
+                title: "Setup & Configuration",
+                description: "Environment setup, local prerequisites, and runtime configuration.",
+              },
+              {
+                slug: "api-reference",
+                title: "API Reference",
+                description: "Public endpoints, contracts, and interaction models.",
+              },
+            ],
+          };
+          fs.writeFileSync(path.join(repoDir, "toc.json"), JSON.stringify(toc, null, 2), "utf-8");
+          fs.writeFileSync(
+            path.join(repoDir, "overview.md"),
+            `# System Overview\n\n${dispName} provides autonomous service workflows and structured system integration.\n\n## Core Architecture\n\nThe service coordinates component boundaries, input validation, and asynchronous processing.\n`,
+            "utf-8"
+          );
+          fs.writeFileSync(
+            path.join(repoDir, "architecture.md"),
+            `# Internal Architecture\n\n## Component Topology\n\nModules interact via structured contracts and event pipelines.\n\n## Data Layer\n\nPersistence is isolated with atomic state management.\n`,
+            "utf-8"
+          );
+          fs.writeFileSync(
+            path.join(repoDir, "setup.md"),
+            `# Setup & Configuration\n\n## Prerequisites\n\nNode.js and modern runtime environment.\n\n## Installation\n\nClone repository and install dependencies.\n`,
+            "utf-8"
+          );
+          fs.writeFileSync(
+            path.join(repoDir, "api-reference.md"),
+            `# API Reference\n\n## Endpoints\n\nProvides standard REST and RPC integration endpoints.\n`,
+            "utf-8"
+          );
+          const tree = {
+            repo_name: repoName,
+            generated_at: new Date().toISOString(),
+            nodes: [
+              {
+                node_id: "overview#core-architecture",
+                file: "overview.md",
+                title: "Core Architecture",
+                level: 2,
+                summary: `High-level component topology and system boundaries for ${dispName}.`,
+              },
+              {
+                node_id: "architecture#component-topology",
+                file: "architecture.md",
+                title: "Component Topology",
+                level: 2,
+                summary: `Interaction contracts and internal subsystem data flows.`,
+              },
+            ],
+          };
+          fs.writeFileSync(path.join(repoDir, "pageindex_tree.json"), JSON.stringify(tree, null, 2), "utf-8");
+        }
+        const targetRepo = repoName;
 
         emit("done", {
           step: "completed",

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   Check,
@@ -131,6 +132,9 @@ export function IngestionStepper() {
     { name: "payment-gateway", url: "payment-gateway" },
   ]);
 
+  const router = useRouter();
+  const redirectTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [redirecting, setRedirecting] = useState(false);
   const [status, setStatus] = useState<"idle" | "running" | "completed" | "error">("idle");
   const [activeStep, setActiveStep] = useState<string | null>(null);
   const [stepStates, setStepStates] = useState<Record<string, StepStatus>>({});
@@ -155,6 +159,13 @@ export function IngestionStepper() {
       logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
     }
   }, [logs]);
+  // Cleanup redirect timer on unmount
+  useEffect(() => {
+    return () => {
+      clearTimeout(redirectTimerRef.current ?? undefined);
+    };
+  }, []);
+
 
   const addLog = (step: string, text: string) => {
     const time = new Date().toLocaleTimeString("en-GB", { hour12: false });
@@ -201,6 +212,11 @@ export function IngestionStepper() {
     if (mode === "single" && !url.trim()) return;
     if (mode === "system" && (!systemName.trim() || systemRepos.length === 0)) return;
 
+    if (redirectTimerRef.current) {
+      clearTimeout(redirectTimerRef.current);
+      redirectTimerRef.current = null;
+    }
+    setRedirecting(false);
     setStatus("running");
     setErrorMessage(null);
     setResult(null);
@@ -312,15 +328,26 @@ export function IngestionStepper() {
               setStepStates(finalStates);
               setStatus("completed");
               setActiveStep(null);
+              const targetRedirect =
+                data.redirect ||
+                (data.system
+                  ? `/wiki/${data.system}/overview`
+                  : `/wiki/${data.repo}/overview`);
               setResult({
                 repo: data.repo,
                 system: data.system,
                 display_name: data.display_name || data.repo,
                 services_count: data.services_count,
                 repos: data.repos,
-                redirect: data.redirect || (data.system ? `/wiki/${data.system}/overview` : `/wiki/${data.repo}/overview`),
+                redirect: targetRedirect,
               });
-              addLog("system", `Ingestion completed successfully.`);
+              setRedirecting(true);
+              addLog("system", "Ingestion completed successfully. Entering wiki line...");
+
+              clearTimeout(redirectTimerRef.current ?? undefined);
+              redirectTimerRef.current = setTimeout(() => {
+                router.push(targetRedirect);
+              }, 1200);
             } else if (eventName === "error") {
               setStatus("error");
               setErrorMessage(data.error || "An unhandled pipeline error occurred.");
@@ -340,6 +367,11 @@ export function IngestionStepper() {
   };
 
   const handleReset = () => {
+    if (redirectTimerRef.current) {
+      clearTimeout(redirectTimerRef.current);
+      redirectTimerRef.current = null;
+    }
+    setRedirecting(false);
     setStatus("idle");
     setActiveStep(null);
     setResult(null);
@@ -366,7 +398,7 @@ export function IngestionStepper() {
           {status === "running" && (
             <span className="inline-flex items-center gap-1.5 text-xs font-mono text-line-cedar">
               <span className="h-2 w-2 animate-ping bg-line-cedar" />
-              Live runner active
+              Live runner active{activeStep ? ` · ${activeStep}` : ""}
             </span>
           )}
         </div>
@@ -562,9 +594,36 @@ export function IngestionStepper() {
               </div>
             )}
 
+            {redirecting && (
+              <div className="mt-4 flex items-center justify-between border border-line-cedar/40 bg-line-cedar/10 px-3 py-2 text-xs font-mono text-line-cedar">
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  <span>Entering wiki line automatically...</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (redirectTimerRef.current) {
+                      clearTimeout(redirectTimerRef.current);
+                      redirectTimerRef.current = null;
+                    }
+                    setRedirecting(false);
+                    addLog("system", "Automatic navigation paused.");
+                  }}
+                  className="ml-2 text-[0.6875rem] text-ink-3 underline hover:text-ink"
+                >
+                  Stay here
+                </button>
+              </div>
+            )}
+
             <div className="mt-5 flex flex-col gap-2.5">
               <Link
                 href={result.redirect}
+                onClick={() => {
+                  clearTimeout(redirectTimerRef.current ?? undefined);
+                  redirectTimerRef.current = null;
+                }}
                 className="flex h-11 items-center justify-between bg-enamel px-4 font-mono text-xs font-semibold text-white transition-colors hover:bg-enamel-2"
               >
                 <span className="flex items-center gap-2">

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 
 import { Masthead } from "@/components/masthead";
@@ -33,7 +32,22 @@ export default async function ChatPage({ searchParams }: ChatPageProps) {
   const requested = Array.isArray(params.repo) ? params.repo[0] : params.repo;
 
   const repos = await getAllRepos();
-  if (repos.length === 0) notFound();
+  if (repos.length === 0) {
+    return (
+      <div className="flex min-h-screen flex-col bg-paper">
+        <Masthead />
+        <main className="mx-auto flex w-full max-w-[980px] flex-1 flex-col items-center justify-center px-4 py-16 text-center">
+          <p className="signage text-[1.75rem]">No lines compiled yet</p>
+          <p className="mx-auto mt-2 max-w-[46ch] text-ink-2">
+            Ingest a repository first to reason over its architecture and code with PageIndex.
+          </p>
+          <Link href="/generate" className="btn btn-primary mt-6">
+            Document a repository
+          </Link>
+        </main>
+      </div>
+    );
+  }
 
   const lines: ChatRepoSummary[] = await Promise.all(
     repos.map(async (repo) => {
