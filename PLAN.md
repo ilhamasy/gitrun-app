@@ -163,6 +163,43 @@ data: {"step": "completed", "repo": "payment-gateway", "redirect": "/wiki/paymen
 3. `event: token`: `{"delta": "The system enforces idempotency using Redis-backed distributed locks..."}`
 4. `event: done`: `{"finish_reason": "stop"}`
 
+### E. Microservices System & Cross-Service Tree Schema (`content/system_tree.json`)
+When managing multiple microservices across a department, a Tier-1 System Tree routes queries that cross service boundaries:
+```json
+{
+  "system_name": "department-commerce",
+  "generated_at": "2026-10-27T00:00:00Z",
+  "services": [
+    {
+      "repo": "payment-gateway",
+      "summary": "Core transaction processing, idempotency locking, PSP adapters, and financial ledger.",
+      "tree_ref": "content/payment-gateway/pageindex_tree.json"
+    },
+    {
+      "repo": "auth-sentinel",
+      "summary": "OAuth2/OIDC identity provider, RS256 token issuance, and session revocation.",
+      "tree_ref": "content/auth-sentinel/pageindex_tree.json"
+    }
+  ],
+  "interchanges": [
+    {
+      "id": "interchange#jwt-auth-validation",
+      "type": "sync_rpc",
+      "source": "payment-gateway",
+      "target": "auth-sentinel",
+      "summary": "Payment Gateway validates RS256 JWT signatures against Auth Sentinel JWKS endpoint."
+    },
+    {
+      "id": "interchange#kafka-payment-events",
+      "type": "event_broker",
+      "source": "payment-gateway",
+      "broker": "Apache Kafka (payments.initiated, payments.settled)",
+      "summary": "Asynchronous settlement events broadcast to accounting and fulfillment services."
+    }
+  ]
+}
+```
+
 ---
 
 ## 4. Phase-by-Phase Roadmap & Ownership
@@ -175,6 +212,7 @@ data: {"step": "completed", "repo": "payment-gateway", "redirect": "/wiki/paymen
 | **Phase 4** | **Reasoning Chat Surface** | Dedicated `/chat` page, repo-scoped thread, node citation list, SSE streaming reader, local PageIndex engine | **COMPLETED** (local engine) | Fullstack |
 | **Phase 5** | **Live Ingestion Stepper** | `/generate` page, URL input, real-time SSE progress tracker, auto-redirect on finish | Pending | Frontend |
 | **Phase 6** | **End-to-End Integration & Demo** | Docker compose / run script, 9router credentials, rehearse 3-minute pitch scenario | Pending | Team |
+| **Phase 7** | **Microservices Network & Cross-Service Reasoning** | Two-tier PageIndex (System Tree-of-Trees), multi-service chat routing, transit interchange map UI, cross-service dependency tracing | Planned | Fullstack / Architecture |
 
 ---
 
