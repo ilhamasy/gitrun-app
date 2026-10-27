@@ -7,6 +7,7 @@ interface StarterPromptsProps {
   displayName: string;
   prompts: string[];
   onPick: (prompt: string) => void;
+  global?: boolean;
 }
 
 /**
@@ -18,13 +19,26 @@ export function StarterPrompts({
   displayName,
   prompts,
   onPick,
+  global = false,
 }: StarterPromptsProps) {
   return (
     <div className="mt-7">
-      <h2 className="label mb-1 text-ink">Ask {displayName}</h2>
+      <h2 className="label mb-1 text-ink">
+        {global ? "Ask across every line" : `Ask ${displayName}`}
+      </h2>
       <p className="mb-4 max-w-[58ch] text-[1.0625rem] leading-relaxed text-ink-2">
-        Every question below is routed through the {repo} node index and answered
-        from the section it selects. Pick one, or write your own.
+        {global ? (
+          <>
+            These questions are routed through the node index of every project on
+            the board, so an answer can draw on more than one line. Pick one, or
+            write your own.
+          </>
+        ) : (
+          <>
+            Every question below is routed through the {repo} node index and
+            answered from the section it selects. Pick one, or write your own.
+          </>
+        )}
       </p>
 
       <ul className="grid gap-px border border-hairline bg-hairline">

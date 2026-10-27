@@ -18,9 +18,12 @@ import { StarterPrompts } from "@/components/chat/starter-prompts";
 import { QuestionEntry } from "@/components/chat/question-entry";
 import { ChatInput } from "@/components/chat/chat-input";
 
+/** `null` means "search every line": the default for finding problems. */
+type Scope = string | null;
+
 interface ChatContainerProps {
   lines: ChatRepoSummary[];
-  initialRepo: string;
+  initialRepo: string | null;
 }
 
 function newTurn(role: ChatTurn["role"], content: string): ChatTurn {
@@ -36,19 +39,45 @@ function newTurn(role: ChatTurn["role"], content: string): ChatTurn {
 }
 
 /**
- * The thread. One repository per conversation, stated in the header, so no
- * answer can quietly drift onto another line's corpus.
+ * The thread.
+ *
+ * Scope defaults to the whole board, because looking for a problem usually
+ * means not knowing which line owns it. A reader who already knows where to
+ * look can narrow the search to one line; the header always states which scope
+ * the current thread is searching.
  */
 export function ChatContainer({ lines, initialRepo }: ChatContainerProps) {
   const router = useRouter();
-  const [repo, setRepo] = useState(initialRepo);
+  const [scope, setScope] = useState<Scope>(initialRepo);
   const [turns, setTurns] = useState<ChatTurn[]>([]);
   const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
 
-  const line = lines.find((entry) => entry.repo_name === repo) ?? lines[0];
+  const activeLine =
+    scope === null ? null : lines.find((entry) => entry.repo_name === scope) ?? null;
+  const scopeLabel = activeLine ? activeLine.display_name : "All lines";
+  const nodeCount = activeLine
+    ? activeLine.nodes.length
+    : lines.reduce((total, entry) => total + entry.nodes.length, 0);
+  const pageCount = activeLine
+    ? activeLine.pageCount
+    : lines.reduce((total, entry) => total + entry.pageCount, 0);
+
+  /**
+   * Narrowing keeps the curated questions for that line. The whole-board scope
+   * gets cross-cutting questions instead, which is the point of searching every
+   * project: comparing services and finding problems that span lines.
+   */
+  const scopePrompts = activeLine
+    ? activeLine.starters
+    : [
+        "Which services talk to each other, and over what?",
+        "Where is the same responsibility implemented more than once?",
+        "Which service has no documented health check?",
+        "Where do these services disagree on configuration or contracts?",
+      ];
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ block: "end", behavior: "smooth" });
@@ -56,20 +85,27 @@ export function ChatContainer({ lines, initialRepo }: ChatContainerProps) {
 
   useEffect(() => () => abortRef.current?.abort(), []);
 
-  const selectRepo = useCallback(
+  const selectScope = useCallback(
     (next: string) => {
-      if (next === repo) return;
+      const nextScope: Scope = next === "" ? null : next;
+      if (nextScope === scope) return;
       abortRef.current?.abort();
-      setRepo(next);
+      setScope(nextScope);
       setTurns([]);
       setError(null);
       setStreaming(false);
+
+      // Keep the URL honest so a narrowed search can be shared or bookmarked.
       const url = new URL(window.location.href);
-      url.searchParams.set("repo", next);
+      if (nextScope === null) {
+        url.searchParams.delete("repo");
+      } else {
+        url.searchParams.set("repo", nextScope);
+      }
       window.history.replaceState(null, "", url);
-      router.refresh();
+      if (nextScope !== null) router.refresh();
     },
-    [repo, router]
+    [scope, router]
   );
 
   const ask = useCallback(
@@ -100,7 +136,9 @@ export function ChatContainer({ lines, initialRepo }: ChatContainerProps) {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            repo,
+            // Omit `repo` entirely for the whole-board search; the backend
+            // treats an absent scope as "every indexed line".
+            repo: scope ?? undefined,
             messages: history.map((turn) => ({
               role: turn.role,
               content: turn.content,
@@ -154,7 +192,7 @@ export function ChatContainer({ lines, initialRepo }: ChatContainerProps) {
         setStreaming(false);
       }
     },
-    [repo, streaming, turns]
+    [scope, streaming, turns]
   );
 
   function stop() {
@@ -169,19 +207,22 @@ export function ChatContainer({ lines, initialRepo }: ChatContainerProps) {
     setStreaming(false);
   }
 
-  if (!line) return null;
+  if (lines.length === 0) return null;
+
+  const scopeHue = activeLine?.hue ?? "neutral";
 
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-10">
       <section aria-label="Conversation" className="min-w-0">
         <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2 border-b border-hairline pb-3">
           <label className="flex min-w-0 flex-col gap-1">
-            <span className="label-wide text-ink-3">Line under question</span>
+            <span className="label-wide text-ink-3">Search scope</span>
             <select
-              value={repo}
-              onChange={(event) => selectRepo(event.target.value)}
+              value={scope ?? ""}
+              onChange={(event) => selectScope(event.target.value)}
               className="h-10 max-w-full border border-hairline-strong bg-surface px-2.5 font-[family-name:var(--font-signage)] text-[0.9375rem] font-semibold tracking-[0.04em] text-ink"
             >
+              <option value="">All lines — {lines.length} wikis</option>
               {lines.map((entry) => (
                 <option key={entry.repo_name} value={entry.repo_name}>
                   {entry.display_name}
@@ -192,8 +233,7 @@ export function ChatContainer({ lines, initialRepo }: ChatContainerProps) {
 
           <div className="flex items-center gap-3">
             <span className="data text-ink-3">
-              {line.nodes.length} nodes · {line.pageCount}{" "}
-              {line.pageCount === 1 ? "page" : "pages"}
+              {nodeCount} nodes · {pageCount} {pageCount === 1 ? "page" : "pages"}
             </span>
             {turns.length > 0 && (
               <button type="button" onClick={clear} className="btn btn-quiet h-9 px-3">
@@ -204,24 +244,43 @@ export function ChatContainer({ lines, initialRepo }: ChatContainerProps) {
           </div>
         </div>
 
+        <p className="mt-3 max-w-[64ch] text-[0.9375rem] leading-relaxed text-ink-2">
+          {activeLine ? (
+            <>
+              Searching <strong className="font-semibold text-ink">{scopeLabel}</strong> only.
+              Choose <em>All lines</em> to search every project.
+            </>
+          ) : (
+            <>
+              Searching{" "}
+              <strong className="font-semibold text-ink">
+                all {lines.length} lines
+              </strong>{" "}
+              at once. Answers may cite sections from more than one project, and
+              every citation names the line it came from.
+            </>
+          )}
+        </p>
+
         {turns.length === 0 ? (
           <StarterPrompts
-            repo={line.repo_name}
-            displayName={line.display_name}
-            prompts={line.starters}
+            repo={scope ?? "all-lines"}
+            displayName={scopeLabel}
+            prompts={scopePrompts}
             onPick={ask}
+            global={activeLine === null}
           />
         ) : (
           <ol className="mt-6 flex flex-col gap-7">
             {turns.map((turn) =>
               turn.role === "user" ? (
-                <QuestionEntry key={turn.id} turn={turn} hue={line.hue} />
+                <QuestionEntry key={turn.id} turn={turn} hue={scopeHue} />
               ) : (
                 <AnswerEntry
                   key={turn.id}
                   turn={turn}
-                  repo={line.repo_name}
-                  hue={line.hue}
+                  repo={scope ?? ""}
+                  hue={scopeHue}
                 />
               )
             )}
@@ -243,7 +302,7 @@ export function ChatContainer({ lines, initialRepo }: ChatContainerProps) {
           onSend={ask}
           onStop={stop}
           streaming={streaming}
-          repoName={line.display_name}
+          repoName={scopeLabel}
         />
       </section>
 
@@ -251,32 +310,56 @@ export function ChatContainer({ lines, initialRepo }: ChatContainerProps) {
         <div className="border border-hairline bg-surface">
           <div className="border-b border-hairline px-4 py-2.5">
             <h2 id="index-heading" className="label text-ink">
-              The index it reads
+              {activeLine ? "The index it reads" : "Lines in scope"}
             </h2>
           </div>
-          <ol className="max-h-[26rem] overflow-y-auto">
-            {line.nodes.map((node, index) => (
-              <li
-                key={node.node_id}
-                className="grid grid-cols-[1.75rem_minmax(0,1fr)] gap-2 border-b border-hairline px-4 py-2 last:border-b-0"
-              >
-                <span className="station-index pt-0.5">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-                <div className="min-w-0">
-                  <p className="text-[0.875rem] font-semibold leading-snug text-ink">
-                    {node.title}
-                  </p>
-                  <p className="data mt-0.5 break-all text-ink-3">{node.node_id}</p>
-                </div>
-              </li>
-            ))}
-            {line.nodes.length === 0 && (
-              <li className="px-4 py-3 text-[0.9375rem] text-ink-2">
-                No tree index on disk for this line.
-              </li>
-            )}
-          </ol>
+          {activeLine ? (
+            <ol className="max-h-[26rem] overflow-y-auto">
+              {activeLine.nodes.map((node, index) => (
+                <li
+                  key={node.node_id}
+                  className="grid grid-cols-[1.75rem_minmax(0,1fr)] gap-2 border-b border-hairline px-4 py-2 last:border-b-0"
+                >
+                  <span className="station-index pt-0.5">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-[0.875rem] font-semibold leading-snug text-ink">
+                      {node.title}
+                    </p>
+                    <p className="data mt-0.5 break-all text-ink-3">{node.node_id}</p>
+                  </div>
+                </li>
+              ))}
+              {activeLine.nodes.length === 0 && (
+                <li className="px-4 py-3 text-[0.9375rem] text-ink-2">
+                  No tree index on disk for this line.
+                </li>
+              )}
+            </ol>
+          ) : (
+            <ol className="max-h-[26rem] overflow-y-auto">
+              {lines.map((entry, index) => (
+                <li
+                  key={entry.repo_name}
+                  className="grid grid-cols-[1.75rem_minmax(0,1fr)] gap-2 border-b border-hairline px-4 py-2 last:border-b-0"
+                >
+                  <span className="station-index pt-0.5">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-[0.875rem] font-semibold leading-snug text-ink">
+                      {entry.display_name}
+                    </p>
+                    <p className="data mt-0.5 text-ink-3">
+                      {entry.nodes.length} nodes · {entry.pageCount}{" "}
+                      {entry.pageCount === 1 ? "page" : "pages"}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          )}
         </div>
 
         <div className="border border-hairline bg-paper-2 p-4">
@@ -284,7 +367,8 @@ export function ChatContainer({ lines, initialRepo }: ChatContainerProps) {
           <ol className="flex list-none flex-col gap-2 text-[0.9375rem] leading-snug text-ink-2">
             <li>
               <span className="data mr-1.5 text-ink-3">01</span>
-              Rank node titles, summaries, and sections against the question.
+              Rank node titles, summaries, and sections against the question
+              {activeLine ? " in the selected line" : " across every line"}.
             </li>
             <li>
               <span className="data mr-1.5 text-ink-3">02</span>
@@ -292,7 +376,7 @@ export function ChatContainer({ lines, initialRepo }: ChatContainerProps) {
             </li>
             <li>
               <span className="data mr-1.5 text-ink-3">03</span>
-              Quote them, and cite the node each passage came from.
+              Quote them, and cite the line and node each passage came from.
             </li>
           </ol>
           <p className="mt-3 text-[0.8125rem] leading-relaxed text-ink-3">

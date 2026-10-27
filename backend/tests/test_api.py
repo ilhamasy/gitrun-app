@@ -123,3 +123,88 @@ async def test_generate_system_post_endpoint(tmp_path):
         assert "event: step" in content
         assert "event: done" in content
         assert "test-mesh" in content
+
+
+@pytest.mark.asyncio
+async def test_generation_never_writes_into_shipped_content(tmp_path, repo_content_dir, content_dir):
+    """
+    Regression guard: an API call must write into the configured content
+    directory, never into the repository's own `content/` board. This suite
+    once pointed CONTENT_DIR at `../content` (via backend/.env), so test runs
+    published junk lines like "Test Microservice Mesh" onto the real wiki.
+    """
+    before = sorted(p.name for p in repo_content_dir.iterdir() if p.is_dir())
+
+    demo_repo = tmp_path / "isolation-probe-repo"
+    demo_repo.mkdir()
+    (demo_repo / "main.py").write_text("print('probe')", encoding="utf-8")
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        resp = await ac.post("/api/generate", json={"url": str(demo_repo)})
+        assert resp.status_code == 200
+        assert "event: done" in resp.text
+
+    after = sorted(p.name for p in repo_content_dir.iterdir() if p.is_dir())
+    assert after == before, f"test run leaked into content/: {set(after) - set(before)}"
+
+    # The work landed in the sandbox instead.
+    assert (content_dir / "isolation-probe-repo" / "toc.json").exists()
+
+
+@pytest.mark.asyncio
+async def test_chat_without_scope_searches_every_line():
+    """No repo/repos means the whole board is searched — the default for chat."""
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        resp = await ac.post(
+            "/api/chat",
+            json={
+                "messages": [
+                    {"role": "user", "content": "How are signing keys rotated?"}
+                ]
+            },
+        )
+        assert resp.status_code == 200
+        assert "text/event-stream" in resp.headers["content-type"]
+
+        content = resp.text
+        assert "event: reasoning" in content
+        assert "event: citations" in content
+        assert "event: done" in content
+        # Both seeded lines are in scope, so the reasoning step reports both.
+        assert "payment-gateway" in content
+        assert "auth-sentinel" in content
+
+
+@pytest.mark.asyncio
+async def test_chat_scope_narrows_to_named_repo():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        resp = await ac.post(
+            "/api/chat",
+            json={
+                "repo": "auth-sentinel",
+                "messages": [
+                    {"role": "user", "content": "How are signing keys rotated?"}
+                ],
+            },
+        )
+        assert resp.status_code == 200
+        content = resp.text
+        assert "event: done" in content
+        assert "auth-sentinel" in content
+
+
+@pytest.mark.asyncio
+async def test_chat_unknown_scope_returns_404():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        resp = await ac.post(
+            "/api/chat",
+            json={
+                "repo": "does-not-exist",
+                "messages": [{"role": "user", "content": "hello"}],
+            },
+        )
+        assert resp.status_code == 404

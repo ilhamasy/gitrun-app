@@ -141,21 +141,27 @@ class SystemIngestionPipeline:
                 data={
                     "step": "mesh_extract",
                     "status": "running",
-                    "message": "Discovering inter-service RPCs, Kafka event topics, and injecting peer cross-links...",
+                    "message": "Scanning member repositories for service references, ports, and message topics...",
                 },
             )
 
-            system_toc = self.system_synthesizer.generate_system_wiki(
+            detected_interactions = self.system_synthesizer.mesh_extractor.build_mesh(
+                services_info, bundle_text_map
+            )
+
+            self.system_synthesizer.generate_system_wiki(
                 system_name=sys_clean,
                 display_name=disp_clean,
                 services=services_info,
                 bundle_map=bundle_text_map,
+                interactions=detected_interactions,
             )
 
             self.system_synthesizer.inject_system_context_into_member_repos(
                 system_name=sys_clean,
                 system_display=disp_clean,
                 services=services_info,
+                interactions=detected_interactions,
             )
 
             # 6. Build PageIndex Trees for all member repos and the federated system

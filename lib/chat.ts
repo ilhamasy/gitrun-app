@@ -13,6 +13,11 @@ export interface ChatCitation {
   title: string;
   file: string;
   summary: string;
+  /**
+   * The line this node lives on. Present on cross-line answers, where a single
+   * thread can cite nodes from several repositories.
+   */
+  repo?: string;
 }
 
 /** One real unit of work, so the drawer describes what happened, not what might. */
@@ -57,10 +62,15 @@ export interface ChatRepoSummary {
   starters: string[];
 }
 
-/** A citation resolves to the exact wiki station and section it came from. */
+/**
+ * A citation resolves to the exact wiki station and section it came from.
+ * Cross-line answers carry their own `repo`, so the link follows the node
+ * rather than the currently selected line.
+ */
 export function citationHref(repo: string, citation: ChatCitation): string {
   const station = citation.file.replace(/\.md$/i, "");
-  return `/wiki/${repo}/${station}#${citation.node_id.split("#")[1] ?? ""}`;
+  const line = citation.repo ?? repo;
+  return `/wiki/${line}/${station}#${citation.node_id.split("#")[1] ?? ""}`;
 }
 
 /**

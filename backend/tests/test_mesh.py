@@ -8,6 +8,7 @@ from backend.ingestion.mesh import (
     SystemSynthesizer,
     extract_service_metadata,
 )
+from backend.ingestion.synthesizer import DocSynthesizer
 from backend.ingestion.system_pipeline import SystemIngestionPipeline
 
 
@@ -28,7 +29,12 @@ topic := "orders.created"
     assert info.port == 8085
     assert "PostgreSQL" in info.datastores
     assert any("/api/v1/orders" in ep for ep in info.exposed_endpoints)
-    assert any("orders.created" in t for t in info.published_topics)
+
+    # The literal is recorded, but its direction is not guessed from its name.
+    # Only a publish/consume call site may assign a direction.
+    assert "orders.created" in info.declared_topics
+    assert info.published_topics == []
+    assert info.subscribed_topics == []
 
 
 def test_cross_repo_mesh_extractor():
@@ -179,3 +185,159 @@ async def test_system_ingestion_pipeline_run():
         auth_overview = (content_dir / "auth-mini" / "overview.md").read_text(encoding="utf-8")
         assert "System Context & Peer Services" in auth_overview
         assert "[Mini Microservice Mesh](/wiki/mini-mesh/overview)" in auth_overview
+
+
+def test_no_fabricated_infrastructure_in_system_wiki():
+    """
+    Regression guard for the reported bug: a mesh of two trivial services used
+    to be documented with Kafka, Redis, PostgreSQL, a payment gateway, an auth
+    service, and idempotency headers — none of which existed in the repos.
+    """
+    with tempfile.TemporaryDirectory() as temp_dir:
+        content_dir = Path(temp_dir) / "content"
+
+        s1 = ServiceNodeInfo(
+            repo_name="sys-svc-1",
+            display_name="System Service 1",
+            description="Minimal Node.js stub.",
+            language="JavaScript",
+        )
+        s2 = ServiceNodeInfo(
+            repo_name="sys-svc-2",
+            display_name="System Service 2",
+            description="Minimal Python stub.",
+            language="Python",
+        )
+
+        synth = SystemSynthesizer(content_dir=content_dir)
+        synth.generate_system_wiki(
+            system_name="test-mesh",
+            display_name="Test Microservice Mesh",
+            services=[s1, s2],
+            bundle_map={
+                "sys-svc-1": "console.log('svc1')",
+                "sys-svc-2": "print('svc2')",
+            },
+        )
+
+        sys_dir = content_dir / "test-mesh"
+        combined = "\n".join(
+            (sys_dir / f"{slug}.md").read_text(encoding="utf-8")
+            for slug in ["overview", "architecture", "setup", "api-reference"]
+        )
+
+        for invented in (
+            "Kafka",
+            "kafka",
+            "Redis",
+            "PostgreSQL",
+            "Stripe",
+            "Adyen",
+            "Auth Sentinel",
+            "Payment Gateway",
+            "Idempotency-Key",
+            "payment.settled",
+            "OpenTelemetry",
+        ):
+            assert invented not in combined, f"system wiki invented '{invented}'"
+
+        # It must also say plainly that nothing was found.
+        assert "No inter-service communication was detected" in combined
+        assert "No message broker library" in combined
+
+
+def test_no_synthetic_edge_when_repos_do_not_reference_each_other():
+    """A sparse mesh must stay sparse instead of gaining a demo edge."""
+    s1 = ServiceNodeInfo(
+        repo_name="alpha-svc",
+        display_name="Alpha",
+        description="unrelated",
+        language="Go",
+        published_topics=["alpha.events"],
+    )
+    s2 = ServiceNodeInfo(
+        repo_name="beta-svc",
+        display_name="Beta",
+        description="unrelated",
+        language="Go",
+        subscribed_topics=["beta.events"],
+    )
+
+    extractor = CrossRepoMeshExtractor()
+    interactions = extractor.build_mesh(
+        [s1, s2],
+        {"alpha-svc": "package main", "beta-svc": "package main"},
+    )
+    assert interactions == []
+
+
+def test_real_reference_is_detected_with_evidence():
+    """A genuine call site is still discovered, and carries its evidence."""
+    s1 = ServiceNodeInfo(
+        repo_name="checkout-api",
+        display_name="Checkout API",
+        description="frontend",
+        language="Go",
+        env_vars=["INVENTORY_SERVICE_URL"],
+    )
+    s2 = ServiceNodeInfo(
+        repo_name="inventory-service",
+        display_name="Inventory Service",
+        description="stock",
+        language="Go",
+        port=8090,
+    )
+
+    extractor = CrossRepoMeshExtractor()
+    interactions = extractor.build_mesh(
+        [s1, s2],
+        {
+            "checkout-api": 'fetch("http://inventory-service:8090/stock")',
+            "inventory-service": "package main",
+        },
+    )
+
+    assert len(interactions) == 1
+    assert interactions[0]["source"] == "checkout-api"
+    assert interactions[0]["target"] == "inventory-service"
+    assert interactions[0]["evidence"]
+
+
+def test_member_fallback_pages_do_not_invent_endpoints():
+    """Offline member pages must not print made-up routes or env vars."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        content_dir = Path(temp_dir) / "content"
+        synth = DocSynthesizer(content_dir=content_dir)
+
+        bundle = """<repository name="tiny-svc">
+<file path="tiny-svc/main.go">package main
+func main() { http.ListenAndServe(":8099", nil) }
+</file>
+</repository>"""
+
+        toc = {"display_name": "Tiny Service", "language": "Go", "description": "tiny"}
+        for slug in ["overview", "architecture", "setup", "api-reference"]:
+            md = synth._fallback_page_markdown(
+                repo_name="tiny-svc",
+                slug=slug,
+                title=slug.title(),
+                description="",
+                bundle_content=bundle,
+                toc=toc,
+            )
+            assert "/api/v1/execute" not in md
+            assert "/api/v1/status" not in md
+            assert "Redis" not in md
+            assert "Kafka" not in md
+            assert "Bearer tokens" not in md
+
+
+def test_filenames_are_not_detected_as_message_topics():
+    """`main.py` matches a dotted-identifier regex; it is a filename, not a topic."""
+    bundle = '<file path="main.py">import os\nprint("svc2")\nx = "main.py"\n</file>'
+    info = extract_service_metadata("sys-svc-2", bundle, {})
+    assert info.declared_topics == []
+
+    real = extract_service_metadata("svc", 'producer.send("orders.created", p)', {})
+    assert real.declared_topics == ["orders.created"]
+    assert real.published_topics == ["orders.created"]

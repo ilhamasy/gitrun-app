@@ -2,6 +2,7 @@ import {
   slugifyHeading,
   type PageIndexNode,
   type PageIndexTree,
+  type RepoToc,
 } from "@/lib/stations";
 import { getRepoPageIndexTree, getRepoPageMarkdown, getRepoToc } from "@/lib/wiki";
 import type { ChatCitation, ChatStep } from "@/lib/chat";
@@ -79,17 +80,17 @@ export function extractSectionMarkdown(
 /**
  * Deterministic vectorless PageIndex search across node titles, summaries, and IDs.
  */
-export function searchTreeNodes(
-  tree: PageIndexTree,
+export function searchTreeNodes<T extends PageIndexNode>(
+  tree: { nodes: T[] },
   query: string,
   topK = 3
-): { thought: string; nodes: PageIndexNode[] } {
+): { thought: string; nodes: T[] } {
   const clean = query.toLowerCase().replace(/[^\w\s-]/g, " ");
   const rawTerms = clean.split(/\s+/).filter(Boolean);
   const terms = rawTerms.filter((t) => !STOPWORDS[t] && t.length > 1);
   const activeTerms = terms.length > 0 ? terms : rawTerms;
 
-  const scored: { score: number; node: PageIndexNode }[] = tree.nodes.map((node) => {
+  const scored: { score: number; node: T }[] = tree.nodes.map((node) => {
     let score = 0;
     const nid = node.node_id.toLowerCase();
     const title = node.title.toLowerCase();
@@ -199,6 +200,9 @@ export async function* localPageIndexChat(
         node_id: s.node_id,
         title: s.title,
         file: s.file,
+        summary: "",
+        // Stated even for a single line so the renderer has one code path.
+        repo: repoName,
       })),
     },
   };
@@ -364,5 +368,156 @@ export function composeLocalAnswer(
   return {
     answer: parts.join("\n\n"),
     quoted: sections.length,
+  };
+}
+
+/**
+ * Cross-line routing. One question, every selected line's tree index.
+ *
+ * Nodes from every repository are flattened into one pool and ranked together,
+ * so the winner is whichever section actually matches — not whichever line the
+ * reader happened to be looking at. Each citation carries its own repo so the
+ * answer can link back to the right wiki.
+ */
+export async function* localCorpusChat(
+  repos: string[],
+  messages: { role: string; content: string }[]
+): AsyncIterable<{ event: string; data: Record<string, unknown> }> {
+  const loaded: {
+    repo: string;
+    display: string;
+    tree: PageIndexTree;
+    toc: RepoToc | null;
+  }[] = [];
+
+  for (const repoName of repos) {
+    const [tree, toc] = await Promise.all([
+      getRepoPageIndexTree(repoName),
+      getRepoToc(repoName),
+    ]);
+    if (tree) {
+      loaded.push({
+        repo: repoName,
+        display: toc?.display_name ?? repoName,
+        tree,
+        toc,
+      });
+    }
+  }
+
+  if (loaded.length === 0) {
+    yield {
+      event: "error",
+      data: { error: "No tree index exists for any repository on the board." },
+    };
+    return;
+  }
+
+  const userQuery =
+    [...messages].reverse().find((m) => m.role === "user")?.content ??
+    "Summarize the documented projects";
+
+  const pool: (PageIndexNode & { repo: string })[] = loaded.flatMap((line) =>
+    line.tree.nodes.map((node) => ({ ...node, repo: line.repo }))
+  );
+
+  const { thought, nodes } = searchTreeNodes({ ...loaded[0].tree, nodes: pool }, userQuery, 5);
+
+  yield {
+    event: "reasoning",
+    data: {
+      type: "step",
+      step: `Searched ${loaded.length} line(s)`,
+      thought,
+      message: `Searched ${loaded.length} line(s) and selected ${nodes.length} node(s)`,
+      repos: loaded.map((l) => l.repo),
+    },
+  };
+
+  const sections: {
+    node_id: string;
+    file: string;
+    title: string;
+    repo: string;
+    body: string;
+  }[] = [];
+
+  for (const node of nodes) {
+    const line = loaded.find((entry) => entry.repo === node.repo);
+    if (!line) continue;
+    const slug = node.file.replace(/\.md$/, "");
+    const md = await getRepoPageMarkdown(node.repo, slug);
+    if (!md) continue;
+
+    yield {
+      event: "reasoning",
+      data: {
+        type: "step",
+        step: "Opened section",
+        detail: `${node.repo} · ${node.node_id}`,
+        message: `Opened ${node.repo}/${node.file}#${node.node_id.split("#")[1] ?? ""}`,
+      },
+    };
+
+    const sec = extractSectionMarkdown(md, node.node_id);
+    sections.push({
+      node_id: node.node_id,
+      file: node.file,
+      title: sec?.title || node.title,
+      repo: node.repo,
+      body:
+        sec?.content ??
+        md
+          .split("\n")
+          .filter((l) => !l.startsWith("#"))
+          .join("\n")
+          .slice(0, 1500),
+    });
+  }
+
+  yield {
+    event: "citations",
+    data: {
+      type: "nodes",
+      nodes: sections.map((s) => ({
+        node_id: s.node_id,
+        title: s.title,
+        file: s.file,
+        summary: "",
+        repo: s.repo,
+      })),
+    },
+  };
+
+  const hitLines = [...new Set(sections.map((s) => s.repo))];
+  const synthesis: string[] = [
+    `Searched **${loaded.length} line(s)** for "${userQuery}" and matched ${sections.length} section(s) across ${hitLines.length} line(s).\n`,
+  ];
+
+  for (const sec of sections) {
+    const anchor = sec.node_id.split("#")[1] ?? "";
+    synthesis.push(
+      `\n### ${sec.repo} · [${sec.title}](/wiki/${sec.repo}/${sec.node_id.split("#")[0]}#${anchor}) (\`${sec.node_id}\`)\n`
+    );
+    synthesis.push(sec.body);
+  }
+
+  synthesis.push(
+    "\n\n*Retrieved by PageIndex tree search across the selected lines, without embeddings.*"
+  );
+
+  const fullText = synthesis.join("\n");
+  for (const word of fullText.split(/(\s+)/)) {
+    if (word) {
+      yield { event: "token", data: { type: "token", delta: word } };
+      const { promise, resolve } = Promise.withResolvers<void>();
+      setTimeout(resolve, 12);
+      await promise;
+    }
+  }
+
+  yield {
+    event: "done",
+    data: { type: "done", finish_reason: "stop", engine: "local" },
   };
 }

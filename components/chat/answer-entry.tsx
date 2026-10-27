@@ -14,6 +14,7 @@ const ENGINE_LABEL: Record<ChatEngine, string> = {
 
 interface AnswerEntryProps {
   turn: ChatTurn;
+  /** Scope of the thread; citations may override it with their own line. */
   repo: string;
   hue: string;
 }
@@ -27,6 +28,8 @@ export function AnswerEntry({ turn, repo, hue }: AnswerEntryProps) {
   const streaming = turn.status === "streaming";
   const failed = turn.status === "failed";
   const cited = turn.citations;
+  const citedLines = new Set(cited.map((c) => c.repo ?? repo).filter(Boolean));
+  const spansLines = citedLines.size > 1;
 
   return (
     <article className="border-t-2 border-ink pt-4" data-line={hue}>
@@ -51,6 +54,7 @@ export function AnswerEntry({ turn, repo, hue }: AnswerEntryProps) {
             <>
               {turn.engine ? ENGINE_LABEL[turn.engine] : "No engine"} ·{" "}
               {String(cited.length).padStart(2, "0")} cited
+              {spansLines ? ` across ${citedLines.size} lines` : ""}
             </>
           )}
         </p>
@@ -117,7 +121,10 @@ export function AnswerEntry({ turn, repo, hue }: AnswerEntryProps) {
           </p>
           <ul className="grid gap-px border border-hairline bg-hairline">
             {cited.map((citation, index) => (
-              <li key={citation.node_id} className="bg-paper">
+              <li
+                key={`${citation.repo ?? repo}:${citation.node_id}`}
+                className="bg-paper"
+              >
                 <Link
                   href={citationHref(repo, citation)}
                   className="group grid grid-cols-[2rem_minmax(0,1fr)_auto] items-start gap-2.5 px-3 py-2.5 transition-colors hover:bg-surface"
@@ -130,6 +137,7 @@ export function AnswerEntry({ turn, repo, hue }: AnswerEntryProps) {
                       {citation.title}
                     </span>
                     <span className="data mt-0.5 block break-all text-ink-3">
+                      {citation.repo ? `${citation.repo} · ` : ""}
                       {citation.node_id}
                     </span>
                   </span>

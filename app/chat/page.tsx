@@ -18,7 +18,7 @@ import {
 export const metadata: Metadata = {
   title: "Reasoning chat",
   description:
-    "Ask a repository question and watch the PageIndex tree get walked. Every answer names and links the section it was read from.",
+    "Ask one question across every documented project. The PageIndex trees are searched together, and every answer names the line and section it was read from.",
 };
 
 export const instant = false;
@@ -66,10 +66,17 @@ export default async function ChatPage({ searchParams }: ChatPageProps) {
     })
   );
 
-  const active =
-    lines.find((line) => line.repo_name === requested) ?? lines[0];
-  const toc = await getRepoToc(active.repo_name);
-  const hue = getLineHue(active.repo_name);
+  /**
+   * Scope defaults to the whole board. Landing on a page already scoped to one
+   * repository would hide the thing this surface exists for: finding a problem
+   * without knowing which line owns it. `?repo=` still narrows it.
+   */
+  const active = requested
+    ? lines.find((line) => line.repo_name === requested) ?? null
+    : null;
+  const toc = active ? await getRepoToc(active.repo_name) : null;
+  const hue = active ? getLineHue(active.repo_name) : getLineHue("all-lines");
+  const totalNodes = lines.reduce((total, line) => total + line.nodes.length, 0);
 
   return (
     <div className="flex min-h-screen flex-col bg-paper">
@@ -82,8 +89,8 @@ export default async function ChatPage({ searchParams }: ChatPageProps) {
         <RouteStrip
           repo={toc}
           hue={hue}
-          generated={active.generated}
-          nodeCount={active.nodes.length}
+          generated={active?.generated ?? null}
+          nodeCount={active ? active.nodes.length : totalNodes}
         />
       )}
 
@@ -98,21 +105,28 @@ export default async function ChatPage({ searchParams }: ChatPageProps) {
                 Reasoning chat
               </h1>
               <p className="mt-2 max-w-[62ch] text-[1.0625rem] leading-relaxed text-ink-2">
-                Questions are routed by reading the tree index — titles,
-                summaries, then sections — and answered by quoting the sections
-                it stops on. Each claim carries the node it came from.
+                Every project on the board is searched at once, so you can look
+                for a problem without knowing which line owns it. Questions are
+                routed by reading the tree indexes — titles, summaries, then
+                sections — and answered by quoting the sections they stop on.
+                Each claim carries the line and node it came from.
               </p>
             </div>
             <p className="label-wide flex shrink-0 flex-col items-start gap-1 text-ink-3">
-              <span>One line per conversation</span>
+              <span>
+                {active ? "One line under question" : `All ${lines.length} lines`}
+              </span>
               <span className="data text-ink-3">
-                {active.nodes.length} indexed nodes
+                {active ? active.nodes.length : totalNodes} indexed nodes
               </span>
             </p>
           </div>
         </header>
 
-        <ChatContainer lines={lines} initialRepo={active.repo_name} />
+        <ChatContainer
+          lines={lines}
+          initialRepo={active ? active.repo_name : null}
+        />
 
         <nav
           aria-label="Continue reading"

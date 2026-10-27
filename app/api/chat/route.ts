@@ -1,32 +1,55 @@
 import { NextRequest } from "next/server";
-import { localPageIndexChat } from "@/lib/pageindex";
-import { getRepoToc } from "@/lib/wiki";
+import { localCorpusChat, localPageIndexChat } from "@/lib/pageindex";
+import { getAllRepos, getRepoToc } from "@/lib/wiki";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { repo, messages } = body;
-
-    if (!repo || typeof repo !== "string") {
-      return new Response(JSON.stringify({ error: "Missing or invalid 'repo' parameter" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    const toc = await getRepoToc(repo);
-    if (!toc) {
-      return new Response(JSON.stringify({ error: `Unknown repository: ${repo}` }), {
-        status: 404,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+    const { repo, repos, messages } = body;
 
     if (!Array.isArray(messages) || messages.length === 0) {
       return new Response(JSON.stringify({ error: "Missing or invalid 'messages' parameter" }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
       });
+    }
+
+    /**
+     * Scope is optional by design. With no `repo` and no `repos`, the question
+     * is searched against every line on the board, so a user can hunt for a
+     * problem without first knowing which repository owns it. Naming a line
+     * narrows the search to that tree.
+     */
+    let scope: string[] | null = null;
+    if (typeof repo === "string" && repo.trim()) {
+      scope = [repo.trim()];
+    } else if (Array.isArray(repos) && repos.length > 0) {
+      const named = repos.filter(
+        (entry): entry is string => typeof entry === "string" && entry.trim().length > 0
+      );
+      if (named.length > 0) scope = named;
+    }
+
+    if (scope) {
+      for (const name of scope) {
+        const toc = await getRepoToc(name);
+        if (!toc) {
+          return new Response(
+            JSON.stringify({ error: `Unknown repository: ${name}` }),
+            { status: 404, headers: { "Content-Type": "application/json" } }
+          );
+        }
+      }
+    } else {
+      const all = await getAllRepos();
+      const indexed = all.map((entry) => entry.repo_name);
+      if (indexed.length === 0) {
+        return new Response(
+          JSON.stringify({ error: "No lines on the board to search yet." }),
+          { status: 404, headers: { "Content-Type": "application/json" } }
+        );
+      }
+      scope = indexed;
     }
 
     const backendUrl =
@@ -42,7 +65,11 @@ export async function POST(req: NextRequest) {
       const backendResponse = await fetch(`${backendUrl}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ repo, messages }),
+        body: JSON.stringify({
+          repo: scope.length === 1 ? scope[0] : undefined,
+          repos: scope,
+          messages,
+        }),
         signal: controller.signal,
       });
 
@@ -67,7 +94,12 @@ export async function POST(req: NextRequest) {
     const stream = new ReadableStream({
       async start(controller) {
         try {
-          for await (const { event, data } of localPageIndexChat(repo, messages)) {
+          const streamGenerator =
+            scope.length === 1
+              ? localPageIndexChat(scope[0], messages)
+              : localCorpusChat(scope, messages);
+
+          for await (const { event, data } of streamGenerator) {
             const chunk = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
             controller.enqueue(encoder.encode(chunk));
           }

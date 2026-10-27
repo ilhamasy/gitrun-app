@@ -104,13 +104,22 @@ Repository Files:
 Codebase Sample:
 {bundle_snippet}
 
+Grounding rules (mandatory):
+- Describe only what the code above actually contains. Do not guess at
+  technologies, brokers, datastores, or domain concepts that are not visible.
+- The "description" must be supported by identifiable files or code in the
+  sample. If the repository's purpose is unclear, say what it literally
+  contains (e.g. "small Go module exposing two HTTP handlers") instead of
+  inventing a business domain.
+- Do not name a product (Kafka, Redis, Stripe, ...) unless that name appears in
+  the code sample.
+
 Output MUST be a valid JSON object strictly matching this schema:
 {{
   "repo_name": "{repo_name}",
-  "display_name": "<Human readable service title, e.g. Payment Gateway Service>",
-  "description": "<Concise 1-2 sentence engineering summary of what this repository does>",
+  "display_name": "<Human readable title derived from the repository itself>",
+  "description": "<Concise 1-2 sentence summary of what this repository demonstrably contains>",
   "language": "{primary_lang}",
-  "stars": 100,
   "pages": [
     {{
       "slug": "overview",
@@ -164,7 +173,6 @@ Output MUST be a valid JSON object strictly matching this schema:
             "display_name": display_name,
             "description": f"{display_name} repository built with {language}.",
             "language": language,
-            "stars": 100,
             "pages": STANDARD_PAGES,
         }
 
@@ -235,8 +243,8 @@ Output MUST be a valid JSON object strictly matching this schema:
         bundle_snippet: str,
         toc: Dict[str, Any],
     ) -> str:
-        prompt = f"""You are a principal technical author. Write the comprehensive documentation page '{title}' for repository '{repo_name}'.
-The page slug is '{slug}'.
+        prompt = f"""You are a principal technical author documenting repository '{repo_name}'.
+Page title: '{title}'. Page slug: '{slug}'.
 Page Scope: {description}
 
 Repository Metadata:
@@ -247,19 +255,30 @@ Repository Metadata:
 Codebase Sample:
 {bundle_snippet}
 
-Requirements:
+Grounding rules — these override every stylistic preference:
 1. Start with a top-level '# {title}' heading.
-2. Structure with clear '## Section Name' (and '### Subsections' where appropriate).
-3. Include an ASCII or Mermaid diagram where architectural flow or interaction is relevant.
-4. Include at least one Markdown table (e.g. tech stack, configurations, error codes, or endpoint catalog).
-5. Include concrete code snippets or configuration examples.
-6. Provide bulleted lists and numbered invariants.
-7. Write deep, factual engineering documentation based on the codebase sample. Do not write filler.
+2. Document only what is visible in the codebase sample above. Every named
+   component, dependency, datastore, broker, environment variable, route, and
+   technical claim must be traceable to code in that sample.
+3. Never introduce a technology, product, or integration that does not appear
+   in the sample. If a layer is not present, do not describe it.
+4. Do not invent endpoints, environment variables, tables, metrics, or error
+   codes. If the sample does not show them, write that it was not found.
+5. Prefer citing real identifiers (function names, file paths, route strings,
+   config keys) over generic prose.
+6. A diagram is optional and only belongs here if it reflects the real module
+   structure in the sample. Do not draw components that are not in the code.
+7. Use '## Section Name' headings. Include a table only when you have real
+   rows to put in it.
 """
         try:
             res = await self.llm.complete(
                 prompt=prompt,
-                system="You write authoritative, dense technical documentation in clean Markdown with diagrams and tables.",
+                system=(
+                    "You write grounded technical documentation. You never describe "
+                    "libraries, services, or behaviour that the provided code does not "
+                    "contain. When information is missing you say so explicitly."
+                ),
                 temperature=0.2,
             )
             cleaned = res.strip()
@@ -295,156 +314,163 @@ Requirements:
         bundle_content: str,
         toc: Dict[str, Any],
     ) -> str:
-        files = extract_file_paths(bundle_content)[:30]
-        files_table = "\n".join(
-            f"| `{f}` | Core module | Active |" for f in files[:8]
-        ) or "| `src/` | Main source directory | Active |"
+        """
+        Deterministic page rendering when no model is available.
 
+        Every line here is derived from the bundle: file paths, declared routes,
+        environment lookups, driver imports, and topic literals. Nothing is
+        described that the code did not show, and absent facts are named as
+        absent rather than filled in.
+        """
+        from backend.ingestion.mesh import UNKNOWN, extract_service_metadata
+
+        evidence = extract_service_metadata(repo_name, bundle_content, toc)
         display_name = toc.get("display_name", repo_name)
         lang = toc.get("language", "Generic")
+
+        files = extract_file_paths(bundle_content)[:40]
+        files_table = "\n".join(f"| `{f}` |" for f in files) or f"| {UNKNOWN} |"
+
+        def bullet(items: List[str], empty: str) -> str:
+            return "\n".join(f"- {item}" for item in items) if items else f"- {empty}"
+
+        stacks = (
+            [f"**Datastore**: {s}" for s in evidence.datastores]
+            + [f"**Message broker**: {b}" for b in evidence.brokers]
+            + [f"**Observability**: {o}" for o in evidence.observability]
+        )
 
         if slug == "overview":
             return f"""# {display_name} Overview
 
-The **{display_name}** provides the core business logic, API gateways, and persistence abstractions for {repo_name}.
+Repository `{repo_name}`, written in {lang}. This page records what the source
+tree contains; anything marked `{UNKNOWN}` was searched for and not found.
 
-## Core Capabilities
+## Files In Scope
 
-- **High-Throughput Processing**: Optimized runtime with concurrent pipelines in {lang}.
-- **Domain Boundaries**: Clear isolation of business invariants, data access layers, and transport contracts.
-- **Observability**: Structured logging, health probes, and metrics export.
-- **Fail-Safe Operation**: Graceful error handling and retry mechanisms.
-
-## Architecture Context
-
-```
-[ Clients / Services ] ──> [ {display_name} ] ──> [ Data Store ]
-                                  │
-                                  ▼
-                         [ Background Workers ]
-```
-
-## Tech Stack Summary
-
-| Layer | Technology | Details |
-| :--- | :--- | :--- |
-| Runtime | {lang} | High performance standard runtime |
-| Transport | REST / JSON | HTTP APIs and structured endpoints |
-| Persistence | Relational / Cache | Transactional consistency and fast lookup |
-
-## Key Invariants
-
-1. **State Consistency**: Mutations require validation against schema invariants before commitment.
-2. **Deterministic Fallback**: External dependencies time out cleanly with graceful degradation.
-3. **Auditability**: Critical state transitions emit event logs.
-"""
-
-        elif slug == "architecture":
-            return f"""# {display_name} Internal Architecture
-
-This section details the architectural organization, concurrency models, and data flows of **{display_name}**.
-
-## Component Topology
-
-```mermaid
-graph TD
-  Client[Client Request] --> Transport[Transport Router]
-  Transport --> Handler[Domain Handlers]
-  Handler --> Service[Core Services]
-  Service --> Repository[Repository Layer]
-  Repository --> DB[(Database / State)]
-```
-
-## Package Organization
-
-| Path | Component | Status |
-| :--- | :--- | :--- |
+| File |
+| :--- |
 {files_table}
 
-## Concurrency and Event Models
+## Detected Stack
 
-- **Worker Pools**: Tasks are dispatched asynchronously using bounded concurrency.
-- **Backpressure**: Incoming traffic exceeding throughput thresholds triggers rate limiting.
-- **Graceful Shutdown**: SIGTERM signals flush active worker queues before terminating.
+{bullet(stacks, f"No datastore driver, message broker, or instrumentation library was found in the bundle.")}
 
-## Storage and Persistence
+## Runtime Surface
 
-- **Isolation Levels**: Read committed or serializable depending on ledger requirements.
-- **Connection Pools**: Managed pools maintain bounded active socket connections.
+- **Listening port**: `{evidence.port_label}`
+- **Declared routes**: {evidence.routes_label}
+- **Environment variables read**: {(", ".join(f"`{v}`" for v in evidence.env_vars) if evidence.env_vars else UNKNOWN)}
+
+## Description
+
+{evidence.description}
 """
 
-        elif slug == "setup":
+        if slug == "architecture":
+            return f"""# {display_name} Internal Architecture
+
+Module layout and declared entry points for `{repo_name}`, taken directly from
+the bundle.
+
+## Source Files
+
+| File |
+| :--- |
+{files_table}
+
+## Declared Routes
+
+{bullet([f"`{e}`" for e in evidence.exposed_endpoints], "No route declarations were found in the bundle.")}
+
+## Environment Variables
+
+{bullet([f"`{v}`" for v in evidence.env_vars], "No environment lookups were found in the bundle.")}
+
+## Dependencies Observed
+
+{bullet(stacks, "No datastore driver, broker client, or instrumentation library was found.")}
+
+## Not Documented Here
+
+Cross-module runtime behaviour is only described when the bundle exposes it.
+No concurrency model, saga, or persistence guarantee is asserted
+because none was readable from the ingested files.
+"""
+
+        if slug == "setup":
+            port_line = (
+                f"- **Port**: `{evidence.port}`"
+                if evidence.port
+                else f"- **Port**: {UNKNOWN} (no port declaration found)"
+            )
+            env_table = (
+                "\n".join(f"| `{v}` | read by the code |" for v in evidence.env_vars)
+                or f"| {UNKNOWN} |"
+            )
             return f"""# {display_name} Setup & Configuration
 
-Instructions for local development, environment provisioning, and testing for **{display_name}**.
+Runtime prerequisites observed in `{repo_name}`.
 
 ## Prerequisites
 
-- **Language Runtime**: {lang} environment
-- **Container Engine**: Docker & Docker Compose
-- **Build Tools**: Git and standard package managers
+- **Language runtime**: {lang}
+{port_line}
 
-## Environment Configuration
+## Environment Variables
 
-| Variable | Default | Description |
-| :--- | :--- | :--- |
-| `PORT` | `8000` | HTTP service listening port |
-| `ENV` | `development` | Deployment environment mode |
-| `LOG_LEVEL` | `info` | Structured log verbosity |
+| Variable | Evidence |
+| :--- | :--- |
+{env_table}
 
-## Quickstart Instructions
+## Startup
 
-1. **Clone the repository**:
-   ```bash
-   git clone <repo_url>
-   cd {repo_name}
-   ```
+No start command was inferred from the bundle. Use the repository's own
+entrypoint files:
 
-2. **Install dependencies**:
-   ```bash
-   # Run package installation
-   make setup || npm install || pip install -r requirements.txt
-   ```
+{bullet([f"`{f}`" for f in files[:10]], "No files were available in the bundle.")}
 
-3. **Start local service**:
-   ```bash
-   # Run development server
-   make dev || npm run dev || python main.py
-   ```
+## Verification
 
-## Verification & Testing
-
-Execute the test suite to verify local integrity:
-```bash
-make test || npm test || pytest
-```
+{bullet([f"health probe: `{e}`" for e in evidence.exposed_endpoints if "health" in e.lower()], "No health endpoint was declared in the bundle.")}
 """
 
-        else:  # api-reference
-            return f"""# {display_name} API Reference
+        # api-reference
+        route_table = (
+            "\n".join(f"| `{e}` | declared in source |" for e in evidence.exposed_endpoints)
+            or f"| {UNKNOWN} | no routes declared |"
+        )
+        header_list = ", ".join(f"`{h}`" for h in evidence.headers) if evidence.headers else UNKNOWN
+        topic_list = (
+            "\n".join(
+                f"| `{t}` | {'published' if t in evidence.published_topics else ('subscribed' if t in evidence.subscribed_topics else 'declared')} |"
+                for t in evidence.declared_topics
+            )
+            or f"| {UNKNOWN} | no topic literals found |"
+        )
 
-Specification of REST endpoints, data transfer objects, and error conventions for **{display_name}**.
+        return f"""# {display_name} API Reference
 
-## Protocol Conventions
+Interfaces declared in `{repo_name}`.
 
-- **Content-Type**: `application/json`
-- **Encoding**: UTF-8
-- **Authentication**: Bearer tokens or API keys via `Authorization` header
+## Declared Routes
 
-## Endpoint Catalog
+| Route | Status |
+| :--- | :--- |
+{route_table}
 
-| Method | Route | Description |
-| :--- | :--- | :--- |
-| `GET` | `/health` | Service health probe |
-| `GET` | `/api/v1/status` | Runtime status and operational metrics |
-| `POST` | `/api/v1/execute` | Main business transaction pipeline |
+## Header Names
 
-## Error Codes
+Headers referenced in code: {header_list}
 
-| Code | Status | Meaning |
-| :--- | :--- | :--- |
-| `400` | Bad Request | Schema validation failure or malformed body |
-| `401` | Unauthorized | Missing or expired credentials |
-| `404` | Not Found | Target resource does not exist |
-| `500` | Internal Error | Unhandled service exception |
+## Message Topics
+
+| Topic | Role |
+| :--- | :--- |
+{topic_list}
+
+## Error Conventions
+
+No error catalogue is documented here because none is declared explicitly in
+the code bundle. Consult the source files above for actual error handling.
 """

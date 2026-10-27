@@ -65,7 +65,20 @@ class ChatMessage(BaseModel):
 
 
 class ChatRequest(BaseModel):
-    repo: str = Field(..., description="Target repository name (e.g. 'payment-gateway')")
+    repo: Optional[str] = Field(
+        None,
+        description=(
+            "Optional single-repository scope. When omitted, every indexed "
+            "repository is searched."
+        ),
+    )
+    repos: Optional[List[str]] = Field(
+        None,
+        description=(
+            "Optional subset of repositories to search. Omit both 'repo' and "
+            "'repos' to search the whole wiki board."
+        ),
+    )
     messages: List[ChatMessage] = Field(..., description="Conversation history messages")
 
 
@@ -160,30 +173,46 @@ async def reindex_repository(repo: str):
 async def chat_endpoint(payload: ChatRequest):
     """
     PageIndex Reasoning Chat endpoint.
-    Navigates tree index, extracts section text, and streams response over SSE.
-    """
-    repo_path = CONTENT_DIR / payload.repo
-    if not repo_path.is_dir():
-        raise HTTPException(status_code=404, detail=f"Repository '{payload.repo}' not found")
+    Navigates the tree index, extracts section text, and streams the answer over SSE.
 
-    # If pageindex_tree.json is missing, build it first
-    tree_path = repo_path / "pageindex_tree.json"
-    if not tree_path.exists():
-        try:
-            await indexer.build_repo_tree(payload.repo)
-        except Exception as e:
+    Scope is optional. With no `repo` and no `repos`, the question is searched
+    against every indexed line, so a user can look for a problem without first
+    knowing which repository owns it. Supplying a scope narrows the search.
+    """
+    scope: Optional[List[str]] = None
+    if payload.repo:
+        scope = [payload.repo]
+    elif payload.repos:
+        scope = [r for r in payload.repos if r]
+
+    if scope:
+        unknown = [r for r in scope if not (CONTENT_DIR / r).is_dir()]
+        if unknown:
             raise HTTPException(
-                status_code=500,
-                detail=f"Failed to build PageIndex tree for {payload.repo}: {e}",
+                status_code=404,
+                detail=f"Unknown repositor{'ies' if len(unknown) > 1 else 'y'}: {', '.join(unknown)}",
             )
+
+        # Build any missing tree before searching, so a freshly ingested line
+        # is searchable without a separate indexing step.
+        for repo_name in scope:
+            tree_path = CONTENT_DIR / repo_name / "pageindex_tree.json"
+            if not tree_path.exists():
+                try:
+                    await indexer.build_repo_tree(repo_name)
+                except Exception as e:
+                    raise HTTPException(
+                        status_code=500,
+                        detail=f"Failed to build PageIndex tree for {repo_name}: {e}",
+                    )
 
     messages_payload = [m.model_dump() for m in payload.messages]
 
     async def sse_event_stream():
         try:
-            async for event in engine.stream_chat(
-                repo_name=payload.repo,
+            async for event in engine.stream_corpus_chat(
                 messages=messages_payload,
+                repos=scope,
             ):
                 yield event.to_sse()
         except Exception as e:

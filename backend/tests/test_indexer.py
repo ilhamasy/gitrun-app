@@ -1,11 +1,9 @@
 import pytest
-from pathlib import Path
 from backend.pageindex.indexer import TreeIndexer
 
 
 @pytest.mark.asyncio
-async def test_tree_indexer_dry_run():
-    content_dir = Path("content")
+async def test_tree_indexer_dry_run(content_dir):
     indexer = TreeIndexer(content_dir=content_dir)
 
     tree = await indexer.build_repo_tree("payment-gateway", dry_run=True)
@@ -27,8 +25,7 @@ async def test_tree_indexer_dry_run():
 
 
 @pytest.mark.asyncio
-async def test_tree_indexer_auth_sentinel():
-    content_dir = Path("content")
+async def test_tree_indexer_auth_sentinel(content_dir):
     indexer = TreeIndexer(content_dir=content_dir)
 
     tree = await indexer.build_repo_tree("auth-sentinel", dry_run=True)
