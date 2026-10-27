@@ -18,6 +18,7 @@ Traditional vector RAG fails on codebases:
 1. **Two-Pass Doc Synthesis**: Repomix bundles the codebase into a noise-free XML skeleton; LLM pass 1 extracts a structured Table of Contents, and parallel pass 2 generates comprehensive Markdown pages (`overview`, `architecture`, `setup`, `api-reference`).
 2. **Hierarchical PageIndex Tree**: Markdown headings (`#`, `##`, `###`) are compiled into a structured tree index (`pageindex_tree.json`) with section summaries.
 3. **Reasoning-Based Chat**: An LLM (or deterministic local reader) reasons down the tree like an engineer reading a table of contents, citing the exact document node and section anchor (`/wiki/<repo>/<slug>#<anchor>`).
+4. **Two-Tier System Tree for Microservices**: A Tier-1 department network tree (`system_tree.json`) indexes services, brokers, and gateways, routing cross-cutting queries (*"What happens when checkout fails?"*) across multiple microservice trees simultaneously.
 
 ---
 
@@ -56,6 +57,26 @@ LLM Gateway (9router / OpenAI)
 
 ---
 
+## Microservices Network Architecture (Tree-of-Trees)
+
+```
+                       [ System Network Index ]
+                     (Tier 1: High-Level Registry)
+                                  │
+         ┌────────────────────────┼────────────────────────┐
+         ▼                        ▼                        ▼
+  [ Auth Sentinel ]      [ Payment Gateway ]       [ Order Service ]
+  Line Harbour             Line Cedar               Line Bramble
+  (pageindex_tree.json)    (pageindex_tree.json)    (pageindex_tree.json)
+         │                        │                        │
+         └─────────────────► [ Interchange ] ◄─────────────┘
+                          (Kafka / gRPC / Events)
+```
+
+Services communicate via synchronous RPC and asynchronous brokers. GoWiki models services as colored transit lines crossing at **Interchange Stations**, allowing PageIndex to navigate across boundaries and quote contracts from multiple lines in a single cited answer.
+
+---
+
 ## Project Structure
 
 ```
@@ -90,7 +111,7 @@ go-wiki/
 │   ├── pageindex.ts            # Local TypeScript PageIndex reader & section extractor
 │   ├── stations.ts             # Line hues, slugging, heading numbering, and schemas
 │   └── wiki.ts                 # Disk loader with path traversal security containment
-├── docs/                       # Phase specifications (Phase 1 through Phase 6)
+├── docs/                       # Phase specifications (Phase 1 through Phase 7)
 ├── DESIGN.md                   # Formal transit wayfinding design standard
 ├── PLAN.md                     # Master roadmap and contract specification
 └── PRODUCT.md                  # Product purpose, positioning, and operating principles
@@ -196,6 +217,7 @@ pytest backend/tests
 - **Phase 4: Reasoning Chat Surface** — Complete (SSE streaming, reasoning drawer, node citation links, local fallback).
 - **Phase 5: Live Ingestion Stepper** — Pending (`/generate` stepper UI).
 - **Phase 6: End-to-End Demo** — Pending (pitch script & rehearsal).
+- **Phase 7: Microservices Network & Cross-Service Reasoning** — Planned (two-tier PageIndex, interchange transit map, cross-service dependencies).
 
 ---
 
