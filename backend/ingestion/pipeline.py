@@ -48,9 +48,13 @@ class IngestionPipeline:
         self,
         source: str,
         branch: Optional[str] = None,
+        name: Optional[str] = None,
     ) -> AsyncIterator[IngestionEvent]:
         """
         Executes end-to-end ingestion and streams SSE events.
+
+        `branch` may be a branch or a tag; omitted means the remote's default
+        branch. `name` overrides the wiki line name derived from the source.
         """
         try:
             # Step 1: Clone
@@ -59,14 +63,36 @@ class IngestionPipeline:
                 data={
                     "step": "clone",
                     "status": "running",
-                    "message": "Cloning repository (depth 1)...",
+                    "message": (
+                        f"Cloning {branch} (depth 1)..."
+                        if branch
+                        else "Cloning default branch (depth 1)..."
+                    ),
                 },
             )
             # Run cloner in executor to avoid blocking event loop on git subprocess
-            repo_name, repo_dir = await asyncio.to_thread(
+            cloned = await asyncio.to_thread(
                 self.cloner.clone,
                 source,
                 branch,
+                True,
+                name,
+            )
+            repo_name, repo_dir = cloned.repo_name, cloned.repo_dir
+
+            provenance = cloned.provenance
+            yield IngestionEvent(
+                event="step",
+                data={
+                    "step": "clone",
+                    "status": "completed",
+                    "message": (
+                        f"Checked out {cloned.ref or cloned.branch or 'default branch'}"
+                        + (f" at {cloned.short_commit}" if cloned.short_commit else "")
+                    ),
+                    "ref": cloned.ref or cloned.branch,
+                    "commit": cloned.commit,
+                },
             )
 
             # Step 2: Bundle
@@ -96,6 +122,7 @@ class IngestionPipeline:
             toc = await self.synthesizer.pass1_generate_toc(
                 repo_name=repo_name,
                 bundle_path=bundle_path,
+                provenance=provenance,
             )
 
             # Step 4: Pass 2 - Synthesize Pages in parallel with progress streaming
@@ -153,6 +180,9 @@ class IngestionPipeline:
                 data={
                     "step": "completed",
                     "repo": repo_name,
+                    "branch": cloned.branch,
+                    "ref": cloned.ref or cloned.branch,
+                    "commit": cloned.commit,
                     "redirect": f"/wiki/{repo_name}/overview",
                 },
             )

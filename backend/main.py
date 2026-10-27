@@ -6,6 +6,7 @@ repository discovery, and tree indexing endpoints.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 from pathlib import Path
@@ -85,6 +86,13 @@ class ChatRequest(BaseModel):
 class GenerateRequest(BaseModel):
     url: str = Field(..., description="Git clone URL or local repository path")
     branch: Optional[str] = Field(None, description="Optional branch or tag to clone")
+    name: Optional[str] = Field(
+        None,
+        description=(
+            "Optional wiki line name. Defaults to the repository name, qualified "
+            "with its owner so two same-named repositories do not collide."
+        ),
+    )
 
 
 class RepoItem(BaseModel):
@@ -230,9 +238,27 @@ async def chat_endpoint(payload: ChatRequest):
     )
 
 
-async def _stream_generation(source: str, branch: Optional[str] = None):
-    async for event in pipeline.run(source=source, branch=branch):
+async def _stream_generation(
+    source: str,
+    branch: Optional[str] = None,
+    name: Optional[str] = None,
+):
+    async for event in pipeline.run(source=source, branch=branch, name=name):
         yield event.to_sse()
+
+
+@app.get("/api/refs")
+async def list_refs_endpoint(url: str):
+    """
+    Lists the branches and tags a repository advertises, plus its default
+    branch, so the ingest form can offer a picker instead of asking the reader
+    to type a ref from memory. Nothing is cloned.
+    """
+    try:
+        listing = await asyncio.to_thread(pipeline.cloner.list_refs, url)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return listing.to_dict()
 
 
 @app.post("/api/generate")
@@ -242,7 +268,7 @@ async def generate_endpoint(payload: GenerateRequest):
     Supports remote Git repository URLs and local file system paths.
     """
     return StreamingResponse(
-        _stream_generation(source=payload.url, branch=payload.branch),
+        _stream_generation(source=payload.url, branch=payload.branch, name=payload.name),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
@@ -253,12 +279,16 @@ async def generate_endpoint(payload: GenerateRequest):
 
 
 @app.get("/api/generate/stream")
-async def generate_stream_endpoint(url: str, branch: Optional[str] = None):
+async def generate_stream_endpoint(
+    url: str,
+    branch: Optional[str] = None,
+    name: Optional[str] = None,
+):
     """
     EventSource / SSE GET endpoint for real-time live ingestion streaming.
     """
     return StreamingResponse(
-        _stream_generation(source=url, branch=branch),
+        _stream_generation(source=url, branch=branch, name=name),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",

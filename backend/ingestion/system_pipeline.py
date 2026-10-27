@@ -85,11 +85,22 @@ class SystemIngestionPipeline:
             async def clone_member(repo_item: Dict[str, Any]):
                 url = repo_item["url"]
                 branch = repo_item.get("branch")
-                name, path = await asyncio.to_thread(self.cloner.clone, url, branch)
-                return name, path
+                # The member's declared name is the wiki line name, so it wins
+                # over the one derived from the URL (which drops the owner and
+                # would collide across same-named services).
+                declared = repo_item.get("name") or None
+                cloned = await asyncio.to_thread(
+                    self.cloner.clone, url, branch, True, declared
+                )
+                return cloned
 
             cloned_results = await asyncio.gather(*[clone_member(r) for r in repos])
-            repo_map: Dict[str, Path] = {name: path for name, path in cloned_results}
+            repo_map: Dict[str, Path] = {
+                c.repo_name: c.repo_dir for c in cloned_results
+            }
+            provenance_map: Dict[str, Dict[str, Any]] = {
+                c.repo_name: c.provenance for c in cloned_results
+            }
 
             # 3. Parallel Bundle
             yield IngestionEvent(
@@ -128,7 +139,9 @@ class SystemIngestionPipeline:
 
             for name, b_path in bundle_map.items():
                 # Pass 1 TOC for member
-                toc = await self.synthesizer.pass1_generate_toc(name, b_path)
+                toc = await self.synthesizer.pass1_generate_toc(
+                    name, b_path, provenance=provenance_map.get(name)
+                )
                 # Pass 2 Pages for member
                 await self.synthesizer.pass2_generate_pages(name, b_path, toc)
                 # Extract metadata

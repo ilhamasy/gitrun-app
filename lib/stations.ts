@@ -27,6 +27,11 @@ export interface RepoToc {
   description: string;
   language?: string;
   stars?: number;
+  /** What was actually read: source URL/path, requested ref, branch, commit. */
+  source?: string;
+  ref?: string;
+  branch?: string;
+  commit?: string;
   is_system?: boolean;
   system?: SystemMeta;
   member_repos?: string[];

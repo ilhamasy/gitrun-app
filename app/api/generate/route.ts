@@ -78,8 +78,8 @@ async function proxyIngestion(
   }
 }
 
-async function handleGenerate(url: string, branch?: string) {
-  return proxyIngestion("/api/generate", { url, branch });
+async function handleGenerate(url: string, branch?: string, name?: string) {
+  return proxyIngestion("/api/generate", { url, branch, name });
 }
 
 async function handleGenerateSystem(
@@ -112,6 +112,9 @@ export async function POST(req: NextRequest) {
     // Single repository request
     const url = body.url;
     const branch = body.branch;
+    // Optional: overrides the wiki line name, which otherwise is qualified
+    // with the repository's owner to avoid same-name collisions.
+    const name = typeof body.name === "string" ? body.name : undefined;
 
     if (!url || typeof url !== "string") {
       return new Response(
@@ -120,7 +123,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    return handleGenerate(url, branch);
+    return handleGenerate(url, branch, name);
   } catch {
     return new Response(
       JSON.stringify({ error: "Invalid JSON request body" }),
@@ -133,6 +136,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const url = searchParams.get("url");
   const branch = searchParams.get("branch") || undefined;
+  const name = searchParams.get("name") || undefined;
 
   if (!url) {
     return new Response(
@@ -141,5 +145,5 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  return handleGenerate(url, branch);
+  return handleGenerate(url, branch, name);
 }

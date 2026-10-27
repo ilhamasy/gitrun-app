@@ -15,6 +15,7 @@ import {
   MessageSquare,
   Network,
   GitBranch,
+  RefreshCw,
   Plus,
   Trash2,
 } from "lucide-react";
@@ -31,7 +32,7 @@ const SINGLE_STAGES: StageConfig[] = [
     id: "clone",
     stage: "Clone",
     detail: "git clone --depth 1",
-    body: "A shallow clone of the repository at its default branch, discarded after the run.",
+    body: "A shallow clone of the chosen branch or tag — the default branch unless you pick another — discarded after the run.",
   },
   {
     id: "bundle",
@@ -70,7 +71,7 @@ const SYSTEM_STAGES: StageConfig[] = [
     id: "clone_all",
     stage: "Parallel Clone",
     detail: "git clone --depth 1",
-    body: "Clones all member microservices concurrently into isolated environments.",
+    body: "Clones all member microservices concurrently, each at its own branch or default, into isolated environments.",
   },
   {
     id: "bundle_all",
@@ -116,6 +117,14 @@ interface LogEntry {
 interface MemberInput {
   name: string;
   url: string;
+  branch?: string;
+}
+
+/** What a remote advertises, used to populate the branch picker. */
+interface RefListing {
+  default_branch: string | null;
+  branches: string[];
+  tags: string[];
 }
 
 export function IngestionStepper() {
@@ -123,13 +132,18 @@ export function IngestionStepper() {
 
   // Single repo state
   const [url, setUrl] = useState("payment-gateway");
+  /** Empty means "the remote's default branch", not a hardcoded `main`. */
+  const [branch, setBranch] = useState("");
+  const [refs, setRefs] = useState<RefListing | null>(null);
+  const [refsStatus, setRefsStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [refsError, setRefsError] = useState<string | null>(null);
 
   // Multi-repo system state
   const [systemName, setSystemName] = useState("checkout-mesh");
   const [systemDisplayName, setSystemDisplayName] = useState("Checkout & Identity Mesh");
   const [systemRepos, setSystemRepos] = useState<MemberInput[]>([
-    { name: "auth-sentinel", url: "auth-sentinel" },
-    { name: "payment-gateway", url: "payment-gateway" },
+    { name: "auth-sentinel", url: "auth-sentinel", branch: "" },
+    { name: "payment-gateway", url: "payment-gateway", branch: "" },
   ]);
 
   const router = useRouter();
@@ -180,11 +194,39 @@ export function IngestionStepper() {
     ]);
   };
 
-  const addRepoRow = () => {
-    setSystemRepos((prev) => [...prev, { name: "", url: "" }]);
+  /**
+   * Asks the backend what refs the source advertises.
+   *
+   * Purely additive: if the repository is private, offline, or not a remote at
+   * all, `refs` stays null and the form keeps the free-text ref field. A failed
+   * lookup never blocks an ingestion the reader has already configured.
+   */
+  const loadRefs = async (source: string) => {
+    const target = source.trim();
+    if (!target) return;
+    setRefsStatus("loading");
+    setRefsError(null);
+    try {
+      const response = await fetch(`/api/refs?url=${encodeURIComponent(target)}`);
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body.error || `Ref lookup failed (${response.status})`);
+      }
+      const listing = (await response.json()) as RefListing;
+      setRefs(listing);
+      setRefsStatus("ready");
+    } catch (err: unknown) {
+      setRefs(null);
+      setRefsStatus("error");
+      setRefsError(err instanceof Error ? err.message : String(err));
+    }
   };
 
-  const updateRepoRow = (index: number, field: "name" | "url", val: string) => {
+  const addRepoRow = () => {
+    setSystemRepos((prev) => [...prev, { name: "", url: "", branch: "" }]);
+  };
+
+  const updateRepoRow = (index: number, field: "name" | "url" | "branch", val: string) => {
     setSystemRepos((prev) => {
       const next = [...prev];
       next[index] = { ...next[index], [field]: val };
@@ -201,8 +243,8 @@ export function IngestionStepper() {
     setSystemName("checkout-mesh");
     setSystemDisplayName("Checkout & Identity Mesh");
     setSystemRepos([
-      { name: "auth-sentinel", url: "auth-sentinel" },
-      { name: "payment-gateway", url: "payment-gateway" },
+      { name: "auth-sentinel", url: "auth-sentinel", branch: "" },
+      { name: "payment-gateway", url: "payment-gateway", branch: "" },
     ]);
   };
 
@@ -232,18 +274,26 @@ export function IngestionStepper() {
 
     const payload =
       mode === "single"
-        ? { url: url.trim() }
+        ? { url: url.trim(), branch: branch.trim() || undefined }
         : {
             system_name: systemName.trim(),
             display_name: systemDisplayName.trim() || undefined,
-            repos: systemRepos.filter((r) => r.name.trim() && r.url.trim()),
+            repos: systemRepos
+              .filter((r) => r.name.trim() && r.url.trim())
+              .map((r) => ({
+                name: r.name.trim(),
+                url: r.url.trim(),
+                branch: r.branch?.trim() || undefined,
+              })),
           };
 
     addLog(
       "system",
       mode === "single"
-        ? `Starting ingestion for: ${url.trim()}`
-        : `Starting multi-repo system ingestion for: ${systemDisplayName} (${systemRepos.length} repos)`
+        ? `Starting ingestion for: ${url.trim()}${
+            branch.trim() ? ` @ ${branch.trim()}` : " @ default branch"
+          }`
+        : `Starting multi-repo system ingestion for ${systemDisplayName} (${systemRepos.length} repos)`
     );
 
     try {
@@ -672,11 +722,88 @@ export function IngestionStepper() {
                 id="repo-url"
                 type="text"
                 value={url}
-                onChange={(e) => setUrl(e.target.value)}
+                onChange={(e) => {
+                  setUrl(e.target.value);
+                  // The previous listing belongs to the previous URL.
+                  setRefs(null);
+                  setRefsStatus("idle");
+                  setRefsError(null);
+                }}
                 disabled={status === "running"}
                 placeholder="https://github.com/org/service"
                 className="h-10 w-full border border-hairline-strong bg-paper px-3 font-mono text-[0.8125rem] text-ink placeholder:text-ink-3 focus:border-ink focus:outline-none"
               />
+
+              {/* Branch / tag selection */}
+              <div className="mt-3">
+                <div className="mb-1.5 flex items-baseline justify-between gap-2">
+                  <label htmlFor="repo-branch" className="label-wide block text-ink-2">
+                    Branch or tag
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => loadRefs(url)}
+                    disabled={!url.trim() || refsStatus === "loading" || status === "running"}
+                    className="inline-flex items-center gap-1 font-mono text-[0.6875rem] text-enamel hover:underline disabled:text-ink-3 disabled:no-underline"
+                  >
+                    <RefreshCw
+                      className={`h-3 w-3 ${refsStatus === "loading" ? "animate-spin" : ""}`}
+                    />
+                    {refsStatus === "loading" ? "Listing..." : "List refs"}
+                  </button>
+                </div>
+
+                {refs && (refs.branches.length > 0 || refs.tags.length > 0) ? (
+                  <select
+                    id="repo-branch"
+                    value={branch}
+                    onChange={(e) => setBranch(e.target.value)}
+                    disabled={status === "running"}
+                    className="h-10 w-full border border-hairline-strong bg-paper px-2 font-mono text-[0.8125rem] text-ink focus:border-ink focus:outline-none"
+                  >
+                    <option value="">
+                      {refs.default_branch
+                        ? `Default (${refs.default_branch})`
+                        : "Default branch"}
+                    </option>
+                    <optgroup label="Branches">
+                      {refs.branches.map((b) => (
+                        <option key={`branch-${b}`} value={b}>
+                          {b}
+                          {b === refs.default_branch ? " (default)" : ""}
+                        </option>
+                      ))}
+                    </optgroup>
+                    {refs.tags.length > 0 && (
+                      <optgroup label="Tags">
+                        {refs.tags.map((t) => (
+                          <option key={`tag-${t}`} value={t}>
+                            {t}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                  </select>
+                ) : (
+                  <input
+                    id="repo-branch"
+                    type="text"
+                    value={branch}
+                    onChange={(e) => setBranch(e.target.value)}
+                    disabled={status === "running"}
+                    placeholder="default branch"
+                    className="h-10 w-full border border-hairline-strong bg-paper px-3 font-mono text-[0.8125rem] text-ink placeholder:text-ink-3 focus:border-ink focus:outline-none"
+                  />
+                )}
+
+                <p className="mt-1.5 text-[0.6875rem] leading-relaxed text-ink-3">
+                  {refsStatus === "error"
+                    ? `${refsError}. Type a branch or tag instead.`
+                    : refs
+                    ? "Listing comes from the remote's own refs. Nothing was cloned."
+                    : "Leave empty to let the remote's default branch decide."}
+                </p>
+              </div>
 
               {errorMessage && (
                 <div className="mt-3 flex items-start gap-2 border border-fault/30 bg-fault/10 p-2 text-xs text-fault">
@@ -806,7 +933,7 @@ export function IngestionStepper() {
                   {systemRepos.map((repo, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center gap-2 border border-hairline bg-paper p-2 text-xs"
+                      className="flex items-start gap-2 border border-hairline bg-paper p-2 text-xs"
                     >
                       <div className="flex-1 grid grid-cols-2 gap-2">
                         <input
@@ -825,6 +952,19 @@ export function IngestionStepper() {
                           placeholder="git-url or local"
                           className="h-7 w-full border border-hairline bg-surface px-2 font-mono text-[0.6875rem] text-ink focus:outline-none"
                         />
+                        {/* Each member may track its own branch; empty = default. */}
+                        <div className="col-span-2 flex items-center gap-1.5">
+                          <GitBranch className="h-3 w-3 shrink-0 text-ink-3" aria-hidden="true" />
+                          <input
+                            type="text"
+                            value={repo.branch ?? ""}
+                            disabled={status === "running"}
+                            onChange={(e) => updateRepoRow(idx, "branch", e.target.value)}
+                            placeholder="branch or tag (default)"
+                            aria-label={`Branch or tag for ${repo.name || "member repo"}`}
+                            className="h-7 w-full border border-hairline bg-surface px-2 font-mono text-[0.6875rem] text-ink focus:outline-none"
+                          />
+                        </div>
                       </div>
                       <button
                         type="button"

@@ -40,6 +40,23 @@ STANDARD_PAGES = [
 ]
 
 
+def _provenance_fields(provenance: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    """
+    Normalizes the clone provenance for `toc.json`.
+
+    Only keys with a value are kept, so a wiki ingested from a non-git
+    directory does not claim a commit it never had.
+    """
+    if not provenance:
+        return {}
+    cleaned = {
+        key: value
+        for key, value in provenance.items()
+        if key in ("source", "ref", "branch", "commit") and value
+    }
+    return cleaned
+
+
 def detect_primary_language(bundle_text: str) -> str:
     """Detect dominant programming language from bundle file extensions."""
     counts = {
@@ -74,10 +91,14 @@ class DocSynthesizer:
         self,
         repo_name: str,
         bundle_path: Path,
+        provenance: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
         Pass 1: Generates TOC schema with metadata and 4 standard pages.
         Writes content/<repo_name>/toc.json.
+
+        `provenance` records what was actually read (source, requested ref,
+        checked-out branch, commit) so a published line can state its revision.
         """
         repo_dir = self.content_dir / repo_name
         repo_dir.mkdir(parents=True, exist_ok=True)
@@ -92,6 +113,7 @@ class DocSynthesizer:
 
         if not self.llm.is_configured():
             toc = self._fallback_toc(repo_name, primary_lang)
+            toc.update(_provenance_fields(provenance))
             (repo_dir / "toc.json").write_text(json.dumps(toc, indent=2), encoding="utf-8")
             return toc
 
@@ -160,6 +182,7 @@ Output MUST be a valid JSON object strictly matching this schema:
         except Exception:
             toc = self._fallback_toc(repo_name, primary_lang)
 
+        toc.update(_provenance_fields(provenance))
         (repo_dir / "toc.json").write_text(json.dumps(toc, indent=2), encoding="utf-8")
         return toc
 

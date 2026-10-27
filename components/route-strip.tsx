@@ -58,6 +58,17 @@ export function RouteStrip({
         )}
 
         <span className="flex w-full flex-wrap items-center gap-x-4 gap-y-1 sm:ml-auto sm:w-auto">
+          {/*
+            Provenance. A reader has to be able to tell which revision the
+            documentation describes, because a wiki and the code drift apart
+            the moment the branch moves.
+          */}
+          {(repo.ref || repo.branch) && (
+            <span className="route-strip-meta">
+              {repo.ref || repo.branch}
+              {repo.commit ? ` @ ${repo.commit.slice(0, 7)}` : ""}
+            </span>
+          )}
           {nodeCount !== null && (
             <span className="route-strip-meta">
               {String(nodeCount).padStart(2, "0")} indexed nodes
